@@ -1,0 +1,7 @@
+.simplecov
+README.md
+History.md
+Rakefile
+lib/ant.rb
+spec/ant_spec.rb
+spec/spec_helper.rb

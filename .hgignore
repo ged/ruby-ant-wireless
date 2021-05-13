@@ -1,0 +1,6 @@
+coverage/
+docs/
+tmp/
+spec/\.status
+\.lock$
+\.yml$

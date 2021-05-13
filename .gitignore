@@ -1,0 +1,6 @@
+coverage/
+.esproj/
+*.yml
+docs/
+spec/\.status
+*.lock
