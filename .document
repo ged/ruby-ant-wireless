@@ -1,5 +1,6 @@
+ext/**/*.c
+ext/**/*.h
 lib/**/*.rb
 README.md
-ChangeLog.md
-
+History.md
 LICENSE.txt
