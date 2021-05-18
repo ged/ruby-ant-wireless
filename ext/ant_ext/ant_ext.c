@@ -187,7 +187,7 @@ rant_s_init( int argc, VALUE *argv, VALUE _module )
 	}
 
 	if ( !ANT_Init(ucUSBDeviceNum, ulBaudrate) ) {
-		rb_sys_fail( "Initializing the ANT library." );
+		rb_raise( rb_eRuntimeError, "Initializing the ANT library (no ANT device present?)." );
 	}
 
 	return Qtrue;

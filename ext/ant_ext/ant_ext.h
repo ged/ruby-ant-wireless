@@ -47,6 +47,7 @@ extern VALUE rant_mAnt;
 
 extern VALUE rant_cAntChannel;
 extern VALUE rant_cAntEvent;
+extern VALUE rant_cAntMessage;
 
 
 /* -------------------------------------------------------
@@ -56,5 +57,6 @@ extern void Init_ant_ext _(( void ));
 
 extern void init_ant_channel _(( void ));
 extern void init_ant_event _(( void ));
+extern void init_ant_message _(( void ));
 
 #endif /* end of include guard: ANT_EXT_H_4CFF48F9 */
