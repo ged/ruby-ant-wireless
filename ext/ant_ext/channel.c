@@ -23,8 +23,8 @@ init_ant_channel()
 	rant_mAnt = rb_define_module( "Ant" );
 #endif
 
-
 	rant_cAntChannel = rb_define_class_under( rant_mAnt, "Channel", rb_cObject );
+
 
 	rb_require( "ant/channel" );
 }

@@ -20,5 +20,11 @@ module Ant
 
 	require_relative 'ant_ext'
 
+
+	# Log responses unless the callback is overridden
+	self.on_response do |channel, message_id|
+		self.log.debug "Got response for channel %d: %#x" % [ channel, message_id ]
+	end
+
 end # module Ant
 

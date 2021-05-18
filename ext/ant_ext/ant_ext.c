@@ -11,6 +11,10 @@
 
 VALUE rant_mAnt;
 
+static ID response_callback_ivar;
+
+static UCHAR aucResponseBuffer[ MESG_MAX_SIZE_VALUE ];
+
 
 /* --------------------------------------------------------------
  * Logging Functions
@@ -165,9 +169,14 @@ rant_s_device_serial_number( VALUE _module )
 
 /*
  * call-seq:
- *    Ant.init( device_num, baud_rate=57600 )   -> true
+ *    Ant.init( device_num=0, baud_rate=57600 )   -> true
  *
- * Set up the ANT subsystem.
+ * Initialize the ANT library and connect to the ANT module. The +device_num+ is
+ * the USB device number of the module to connect to, defaulting to 0. Modules
+ * connected to a PC will be assigned USB device numbers starting from 0. N is
+ * the number of USB ANT devices that are connected. The +baud_rate+ is the
+ * asynchronous baud rate used to connect to the ANT controller. See specific
+ * ANT controllers for allowable baud rates.
  *
  */
 static VALUE
@@ -177,9 +186,14 @@ rant_s_init( int argc, VALUE *argv, VALUE _module )
 	unsigned char ucUSBDeviceNum;
 	unsigned int ulBaudrate;
 
-	rb_scan_args( argc, argv, "11", &device_num, &baud_rate );
+	rb_scan_args( argc, argv, "02", &device_num, &baud_rate );
 
-	ucUSBDeviceNum = NUM2USHORT( device_num );
+	if ( RTEST(device_num) ) {
+		ucUSBDeviceNum = NUM2USHORT( device_num );
+	} else {
+		ucUSBDeviceNum = 0;
+	}
+
 	if ( RTEST(baud_rate) ) {
 		ulBaudrate = NUM2UINT( baud_rate );
 	} else {
@@ -205,12 +219,136 @@ rant_s_close( VALUE _module )
 
 
 /*
+ * call-seq:
+ *    Ant.assign_channel( channel, channel_type, network_number=0, extended_options=0x0, timeout=0 )   -> channel
+ *
+ * Assign a channel and return an Ant::Channel object for it. Channel assignment reserves
+ * a channel number and assigns the type and network number to the channel. The
+ * optional extended assignment byte allows for the following features to be
+ * enabled: frequency agility, background scanning, fast channel initiation, and
+ * asynchronous transmission. For more information on these features see sections
+ * 5.2.1.4.1, 5.2.1.4.2, 5.2.1.4.4 and application notes “ANT Frequency Agility”
+ * and “ANT Channel Search and Background Scanning”.
+ *
+ * This Assign Channel command should be issued before any other channel
+ * configuration messages, and before the channel is opened. Assigning a channel
+ * sets all of the other configuration parameters to their defaults.
+ *
+ *    chan = Ant.assign_channel( 0, Ant::PARAMTER_RX_NOT_TX )
+ */
+static VALUE
+rant_s_assign_channel( int argc, VALUE *argv, VALUE _module )
+{
+	unsigned char ucChannel,
+		ucChannelType,
+		ucNetworkNumber = 0,
+		ucExtend = 0,
+		ulResponseTime = 0;
+	VALUE channel,
+		channel_type,
+		network_number,
+		extended_options,
+		timeout;
+	VALUE args[4];
+
+	rb_scan_args( argc, argv, "23", &channel, &channel_type, &network_number, &extended_options, &timeout );
+
+	ucChannel = NUM2UINT( channel );
+	ucChannelType = NUM2UINT( channel_type );
+
+	if ( RTEST(network_number) ) {
+		ucNetworkNumber = NUM2UINT( network_number );
+	}
+	if ( RTEST(extended_options) ) {
+		ucExtend = NUM2UINT( extended_options );
+	}
+	if ( RTEST(timeout) ) {
+		ulResponseTime = NUM2UINT( timeout );
+	}
+
+	if ( !ANT_AssignChannelExt_RTO(ucChannel, ucChannelType, ucNetworkNumber, ucExtend, ulResponseTime) ) {
+		rb_raise( rb_eRuntimeError, "Couldn't assign channel %d", ucChannel );
+	}
+
+	args[0] = channel;
+	args[1] = channel_type;
+	args[2] = network_number;
+	args[3] = extended_options;
+
+	return rb_class_new_instance( 4, args, rant_cAntChannel );
+}
+
+
+struct response_call {
+	UCHAR ucChannel;
+	UCHAR ucResponseMesgID;
+};
+
+static void *
+rant_call_response_callback( void *args )
+{
+	VALUE channel,
+		response_msg_id,
+		callback = rb_ivar_get( rant_mAnt, response_callback_ivar );
+	const struct response_call *call_args = (struct response_call *)args;
+
+	if ( !RTEST(callback) ) {
+		return (void *)FALSE;
+	}
+
+	channel = INT2FIX( call_args->ucChannel );
+	response_msg_id = INT2FIX( call_args->ucResponseMesgID );
+
+	rb_funcall( callback, rb_intern("call"), 2, channel, response_msg_id );
+
+	return (void *)TRUE;
+}
+
+
+static BOOL
+rant_response_callback( UCHAR ucChannel, UCHAR ucResponseMesgID )
+{
+	struct response_call call_args = {
+		.ucChannel = ucChannel,
+		.ucResponseMesgID = ucResponseMesgID
+	};
+	int rval;
+
+	rval = (int)rb_thread_call_with_gvl( rant_call_response_callback, &call_args );
+
+	return rval;
+}
+
+
+static VALUE
+rant_s_on_response( int argc, VALUE *argv, VALUE module )
+{
+	VALUE callback = Qnil;
+
+	rb_scan_args( argc, argv, "0&", &callback );
+
+	if ( !RTEST(callback) ) {
+		rb_raise( rb_eLocalJumpError, "block required, but not given" );
+	}
+
+	rb_ivar_set( module, response_callback_ivar, callback );
+
+	ANT_AssignResponseFunction( rant_response_callback, aucResponseBuffer );
+
+	return Qtrue;
+}
+
+
+
+/*
  * Ant extension init function
  */
 void
 Init_ant_ext()
 {
 	rant_mAnt = rb_define_module( "Ant" );
+
+	response_callback_ivar = rb_intern( "@response_callback" );
 
 	rb_define_singleton_method( rant_mAnt, "lib_version", rant_s_lib_version, 0 );
 
@@ -222,6 +360,11 @@ Init_ant_ext()
 	rb_define_singleton_method( rant_mAnt, "init", rant_s_init, -1 );
 	// rb_define_singleton_method( rant_mAnt, "init_ext", rant_s_init_ext, 4 );
 	rb_define_singleton_method( rant_mAnt, "close", rant_s_close, 0 );
+
+	rb_define_singleton_method( rant_mAnt, "assign_channel", rant_s_assign_channel, -1 );
+
+	rb_define_singleton_method( rant_mAnt, "on_response", rant_s_on_response, -1 );
+
 
 	// EXPORT void ANT_AssignResponseFunction(RESPONSE_FUNC pfResponse, UCHAR* pucResponseBuffer); // pucResponse buffer should be of size MESG_RESPONSE_EVENT_SIZE
 	// EXPORT void ANT_AssignChannelEventFunction(UCHAR ucANTChannel,CHANNEL_EVENT_FUNC pfChannelEvent, UCHAR *pucRxBuffer);
