@@ -3,6 +3,9 @@
 
 #include "extconf.h"
 
+#include <stdbool.h>
+#include <pthread.h>
+
 #include <ruby.h>
 #include <ruby/intern.h>
 #include <ruby/thread.h>
@@ -18,6 +21,23 @@
 #ifndef FALSE
 # define FALSE   0
 #endif
+
+/* --------------------------------------------------------------
+ * Datatypes
+ * -------------------------------------------------------------- */
+
+typedef struct callback_t callback_t;
+struct callback_t {
+	void *data;
+	VALUE (*fn)( VALUE );
+	bool rval;
+
+	pthread_mutex_t mutex;
+	pthread_cond_t  cond;
+
+	bool handled;
+	callback_t *next;
+};
 
 
 /* --------------------------------------------------------------
@@ -58,5 +78,8 @@ extern void Init_ant_ext _(( void ));
 extern void init_ant_channel _(( void ));
 extern void init_ant_event _(( void ));
 extern void init_ant_message _(( void ));
+
+extern void rant_start_callback_thread _(( void ));
+extern bool rant_callback _(( callback_t * ));
 
 #endif /* end of include guard: ANT_EXT_H_4CFF48F9 */

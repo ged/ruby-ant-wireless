@@ -9,6 +9,13 @@ require 'ant'
 
 class Chatter
 
+
+	# Use the first ANT device in the system
+	ANT_DEVICE = 0
+
+	# Which network to use
+	ANT_NETWORK_PUBLIC = 0
+
 	def self::run( args )
 		mode = args.shift or abort "Usage: #$0 [MODE]"
 		case mode
@@ -24,24 +31,30 @@ class Chatter
 
 	def initialize( mode )
 		@mode = mode
-		Ant.init
-
-		@channel = self.get_channel( @mode )
+		@channel = nil
 	end
 
 
 	def run( args )
-		@channel.configure_some_shit
+		Ant.init
+		@channel = self.open_channel( self.mode )
+
+		
 	end
 
 
 	def get_channel( mode )
-		case mode
-		when :master
-			return Ant.assign_channel( 0, Ant::PARAMETER_RX_NOT_TX )
-		when :slave
-			return Ant.assign_channel( 0, Ant::PARAMETER_TX_NOT_RX )
-		end
+		flags = Ant::EXT_PARAM_FREQUENCY_AGILITY
+		channel_type = case mode
+			when :master
+				Ant::PARAMETER_RX_NOT_TX
+			when :slave
+				Ant::PARAMETER_TX_NOT_RX
+			end
+
+		ch = Ant.assign_channel( ANT_DEVICE, channel_type, AMT_NETWORK_PUBLIC, flags )
+		
+
 	end
 
 end

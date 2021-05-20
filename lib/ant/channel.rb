@@ -24,8 +24,9 @@ class Ant::Channel
 
 
 	### Create a new channel with the given
-	def initialize( channel, channel_type, network_number, extended_options )
-		@channel          = channel
+	def initialize( channel_number, channel_type, network_number, extended_options )
+		self.log.debug "Creating channel #%d" % [ channel_number ]
+		@channel_number   = channel_number
 		@channel_type     = channel_type
 		@network_number   = network_number || DEFAULT_NETWORK_NUMBER
 		@extended_options = extended_options || DEFAULT_EXTENDED_OPTIONS
@@ -38,7 +39,7 @@ class Ant::Channel
 
 	##
 	# The channel number this Channel is assigned
-	attr_reader :channel
+	attr_reader :channel_number
 
 	##
 	# The raw numeric channel type
@@ -53,6 +54,17 @@ class Ant::Channel
 	attr_reader :extended_options
 
 
+	### Return a human-readable version of the object suitable for debugging.
+	def inspect
+		return "#<%p:%#x {%d} %#02x on network %d: %d>" % [
+			self.class,
+			self.object_id,
+			self.channel_number,
+			self.channel_type,
+			self.network_number,
+			self.extended_options,
+		]
+	end
 
 end # class Ant::Channel
 

@@ -3,6 +3,8 @@
 
 require 'loggability'
 
+require_relative 'ant_ext'
+
 
 #--
 # See ext/ant_ext/ant_ext.c
@@ -18,12 +20,16 @@ module Ant
 	# Loggability API -- set up a logger for the library
 	log_as :ant
 
-	require_relative 'ant_ext'
 
+	Loggability.level = :debug
 
-	# Log responses unless the callback is overridden
-	self.on_response do |channel, message_id|
-		self.log.debug "Got response for channel %d: %#x" % [ channel, message_id ]
+	# Set a default response callback that just logs the event
+	self.on_response do |channel_num, message_id, data|
+		self.log.debug "Response for channel %d: %#0x: %s" % [
+			channel_num,
+			message_id,
+			data.bytes[ 0..3 ].map {|b| "%#02x" % b }.join( ' ' )
+		]
 	end
 
 end # module Ant

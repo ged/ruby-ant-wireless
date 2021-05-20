@@ -13,8 +13,6 @@ VALUE rant_mAnt;
 
 static ID response_callback_ivar;
 
-static UCHAR aucResponseBuffer[ MESG_MAX_SIZE_VALUE ];
-
 
 /* --------------------------------------------------------------
  * Logging Functions
@@ -200,6 +198,7 @@ rant_s_init( int argc, VALUE *argv, VALUE _module )
 		ulBaudrate = DEFAULT_BAUDRATE;
 	}
 
+	rant_log_obj( rant_mAnt, "info", "Initializing ANT device %d at %d baud", ucUSBDeviceNum, ulBaudrate );
 	if ( !ANT_Init(ucUSBDeviceNum, ulBaudrate) ) {
 		rb_raise( rb_eRuntimeError, "Initializing the ANT library (no ANT device present?)." );
 	}
@@ -222,19 +221,17 @@ rant_s_close( VALUE _module )
  * call-seq:
  *    Ant.assign_channel( channel, channel_type, network_number=0, extended_options=0x0, timeout=0 )   -> channel
  *
- * Assign a channel and return an Ant::Channel object for it. Channel assignment reserves
- * a channel number and assigns the type and network number to the channel. The
- * optional extended assignment byte allows for the following features to be
- * enabled: frequency agility, background scanning, fast channel initiation, and
- * asynchronous transmission. For more information on these features see sections
- * 5.2.1.4.1, 5.2.1.4.2, 5.2.1.4.4 and application notes “ANT Frequency Agility”
- * and “ANT Channel Search and Background Scanning”.
+ * Assign a channel and return an Ant::Channel object for it. Channel assignment
+ * reserves a channel number and assigns the type and network number to the
+ * channel. The optional extended assignment byte allows for the following
+ * features to be enabled:
+ * 
+ * +EXT_PARAM_FREQUENCY_AGILITY+:: enable frequency agility
+ * +EXT_PARAM_BACKGROUND_SCANNING+:: enable background scanning
+ * +EXT_PARAM_FAST_CHANNEL_INIT+:: enable fast channel initiation
+ * +EXT_PARAM_ASYNC_TRANSMIT+:: enable asynchronous transmission
  *
- * This Assign Channel command should be issued before any other channel
- * configuration messages, and before the channel is opened. Assigning a channel
- * sets all of the other configuration parameters to their defaults.
- *
- *    chan = Ant.assign_channel( 0, Ant::PARAMTER_RX_NOT_TX )
+ *    chan = Ant.assign_channel( 0, Ant::PARAMTER_RX_NOT_TX, 0, EXT_PARAM_FREQUENCY_AGILITY )
  */
 static VALUE
 rant_s_assign_channel( int argc, VALUE *argv, VALUE _module )
@@ -270,6 +267,9 @@ rant_s_assign_channel( int argc, VALUE *argv, VALUE _module )
 		rb_raise( rb_eRuntimeError, "Couldn't assign channel %d", ucChannel );
 	}
 
+	rant_log( "info", "Assigned channel %d (0x%02x) to network %d {0x%02x}.",
+		ucChannel, ucChannelType, ucNetworkNumber, ucExtend );
+
 	args[0] = channel;
 	args[1] = channel_type;
 	args[2] = network_number;
@@ -279,46 +279,70 @@ rant_s_assign_channel( int argc, VALUE *argv, VALUE _module )
 }
 
 
-struct response_call {
+// Buffer for response data.
+// static UCHAR pucResponseBuffer[ MESG_RESPONSE_EVENT_SIZE ];
+static UCHAR pucResponseBuffer[ MESG_MAX_SIZE_VALUE ];
+
+struct on_response_call {
 	UCHAR ucChannel;
-	UCHAR ucResponseMesgID;
+	UCHAR ucResponseMessageId;
 };
 
-static void *
-rant_call_response_callback( void *args )
-{
-	VALUE channel,
-		response_msg_id,
-		callback = rb_ivar_get( rant_mAnt, response_callback_ivar );
-	const struct response_call *call_args = (struct response_call *)args;
 
-	if ( !RTEST(callback) ) {
-		return (void *)FALSE;
+/*
+ * Handle the response callback -- Ruby side.
+ */
+static VALUE
+rant_call_response_callback( VALUE callPtr )
+{
+	struct on_response_call *call = (struct on_response_call *)callPtr;
+	VALUE rb_callback = rb_ivar_get( rant_mAnt, response_callback_ivar );
+	VALUE rval = Qnil;
+
+	if ( RTEST(rb_callback) ) {
+		VALUE args[3];
+
+		args[0] = INT2FIX( call->ucChannel );
+		args[1] = INT2FIX( call->ucResponseMessageId );
+		args[2] = rb_enc_str_new( (char *)pucResponseBuffer, MESG_MAX_SIZE_VALUE, rb_ascii8bit_encoding() );
+
+		rval = rb_funcallv_public( rb_callback, rb_intern("call"), 3, args );
 	}
-
-	channel = INT2FIX( call_args->ucChannel );
-	response_msg_id = INT2FIX( call_args->ucResponseMesgID );
-
-	rb_funcall( callback, rb_intern("call"), 2, channel, response_msg_id );
-
-	return (void *)TRUE;
-}
-
-
-static BOOL
-rant_response_callback( UCHAR ucChannel, UCHAR ucResponseMesgID )
-{
-	struct response_call call_args = {
-		.ucChannel = ucChannel,
-		.ucResponseMesgID = ucResponseMesgID
-	};
-	int rval;
-
-	rval = (int)rb_thread_call_with_gvl( rant_call_response_callback, &call_args );
 
 	return rval;
 }
 
+
+/*
+ * Response callback -- call the registered Ruby callback, if one is set.
+ */
+static BOOL
+rant_on_response_callback( UCHAR ucChannel, UCHAR ucResponseMesgID )
+{
+	callback_t callback;
+	struct on_response_call call;
+
+	call.ucChannel = ucChannel;
+	call.ucResponseMessageId = ucResponseMesgID;
+
+	callback.data = &call;
+	callback.fn = rant_call_response_callback;
+
+	return rant_callback( &callback );
+}
+
+
+/*
+ * call-seq:
+ *    Ant.on_response {|channel, response_msg_id| ... }
+ *
+ * Sets the response callback. The callback is called whenever a response
+ * message is received from ANT.
+ *
+ *    Ant.on_response do |channel, response_msg_id, data|
+ *        
+ *    end
+ */
 
 static VALUE
 rant_s_on_response( int argc, VALUE *argv, VALUE module )
@@ -331,9 +355,10 @@ rant_s_on_response( int argc, VALUE *argv, VALUE module )
 		rb_raise( rb_eLocalJumpError, "block required, but not given" );
 	}
 
+	rant_log( "debug", "Callback is: %s", RSTRING_PTR(rb_inspect(callback)) );
 	rb_ivar_set( module, response_callback_ivar, callback );
 
-	ANT_AssignResponseFunction( rant_response_callback, aucResponseBuffer );
+	ANT_AssignResponseFunction( rant_on_response_callback, pucResponseBuffer );
 
 	return Qtrue;
 }
@@ -412,6 +437,11 @@ Init_ant_ext()
 
 	EXPOSE_CONST( EXT_PARAM_ALWAYS_SEARCH );
 	EXPOSE_CONST( EXT_PARAM_FREQUENCY_AGILITY );
+
+	// Set up some aliases and values not in ant.h
+	rb_define_const( rant_mAnt, "EXT_PARAM_BACKGROUND_SCANNING", INT2FIX(EXT_PARAM_ALWAYS_SEARCH) );
+	rb_define_const( rant_mAnt, "EXT_PARAM_FAST_CHANNEL_INIT", INT2FIX(0x10) );
+	rb_define_const( rant_mAnt, "EXT_PARAM_ASYNC_TRANSMIT", INT2FIX(0x20) );
 
 	EXPOSE_CONST( RADIO_TX_POWER_LVL_MASK );
 
@@ -626,7 +656,8 @@ Init_ant_ext()
 
 	init_ant_channel();
 	init_ant_event();
+	init_ant_message();
 
-	rb_require( "ant" );
+	rant_start_callback_thread();
 }
 
