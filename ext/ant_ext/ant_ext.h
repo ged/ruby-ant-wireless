@@ -12,7 +12,7 @@
 #include <ruby/encoding.h>
 #include <ruby/version.h>
 
-#include "ant.h"
+#include "libant.h"
 
 #ifndef TRUE
 # define TRUE    1
