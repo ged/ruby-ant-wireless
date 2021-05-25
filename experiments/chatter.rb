@@ -4,10 +4,14 @@ BEGIN {
 	$LOAD_PATH.unshift 'lib', '../lib'
 }
 
+require 'loggability'
 require 'ant'
 
 
 class Chatter
+	extend Loggability
+
+	log_to :ant
 
 
 	# Use the first ANT device in the system
@@ -41,6 +45,8 @@ class Chatter
 		@channel = nil
 	end
 
+	attr_reader :mode
+
 
 	def run( args )
 		Ant.init
@@ -55,13 +61,13 @@ class Chatter
 
 		case mode
 		when :master
-			Ant::PARAMETER_RX_NOT_TX
+			channel_type = Ant::PARAMETER_RX_NOT_TX
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
-			ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG|DEVICE_TYPE, 1 )
+			ch.set_channel_id( DEVICE_NUMBER, Ant::ANT_ID_DEVICE_TYPE_PAIRING_FLAG|DEVICE_TYPE, 1 )
 		when :slave
-			Ant::PARAMETER_TX_NOT_RX
+			channel_type = Ant::PARAMETER_TX_NOT_RX
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
-			ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG, 0 )
+			ch.set_channel_id( DEVICE_NUMBER, Ant::ANT_ID_DEVICE_TYPE_PAIRING_FLAG, 0 )
 		end
 
 		ch.open
@@ -73,6 +79,7 @@ end
 
 
 if __FILE__ == $0
+	Loggability.level = :debug
 	Chatter.run( ARGV )
 end
 
