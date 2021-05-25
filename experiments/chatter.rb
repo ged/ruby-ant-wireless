@@ -46,7 +46,7 @@ class Chatter
 		Ant.init
 		@channel = self.open_channel( self.mode )
 
-		
+		self.log.debug "Got an open channel."
 	end
 
 
@@ -63,6 +63,8 @@ class Chatter
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
 			ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG, 0 )
 		end
+
+		ch.open
 
 		return ch
 	end
