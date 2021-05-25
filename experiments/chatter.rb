@@ -16,6 +16,13 @@ class Chatter
 	# Which network to use
 	ANT_NETWORK_PUBLIC = 0
 
+	# The ANT device number to use
+	DEVICE_NUMBER = 7286
+
+	# The device type used by this program
+	DEVICE_TYPE = 1
+
+
 	def self::run( args )
 		mode = args.shift or abort "Usage: #$0 [MODE]"
 		case mode
@@ -43,18 +50,21 @@ class Chatter
 	end
 
 
-	def get_channel( mode )
+	def open_channel( mode )
 		flags = Ant::EXT_PARAM_FREQUENCY_AGILITY
-		channel_type = case mode
-			when :master
-				Ant::PARAMETER_RX_NOT_TX
-			when :slave
-				Ant::PARAMETER_TX_NOT_RX
-			end
 
-		ch = Ant.assign_channel( ANT_DEVICE, channel_type, AMT_NETWORK_PUBLIC, flags )
-		
+		case mode
+		when :master
+			Ant::PARAMETER_RX_NOT_TX
+			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
+			ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG|DEVICE_TYPE, 1 )
+		when :slave
+			Ant::PARAMETER_TX_NOT_RX
+			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
+			ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG, 0 )
+		end
 
+		return ch
 	end
 
 end

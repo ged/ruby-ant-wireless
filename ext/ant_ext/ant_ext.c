@@ -365,6 +365,16 @@ rant_s_on_response( int argc, VALUE *argv, VALUE module )
 
 
 
+static VALUE
+rant_s_log_directory_eq( VALUE _module, VALUE directory )
+{
+	const char *directory_s = StringValueCStr( directory );
+	bool rval = ANT_SetDebugLogDirectory( (char *)directory_s );
+
+	return rval ? Qtrue : Qfalse;
+}
+
+
 /*
  * Ant extension init function
  */
@@ -394,6 +404,9 @@ Init_ant_ext()
 	// EXPORT void ANT_AssignResponseFunction(RESPONSE_FUNC pfResponse, UCHAR* pucResponseBuffer); // pucResponse buffer should be of size MESG_RESPONSE_EVENT_SIZE
 	// EXPORT void ANT_AssignChannelEventFunction(UCHAR ucANTChannel,CHANNEL_EVENT_FUNC pfChannelEvent, UCHAR *pucRxBuffer);
 	// EXPORT void ANT_UnassignAllResponseFunctions(); //Unassigns all response functions
+
+
+	rb_define_singleton_method( rant_mAnt, "log_directory=", rant_s_log_directory_eq, 1 );
 
 
 	// Constants
