@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 #include <pthread.h>
+#include <assert.h>
 
 #include <ruby.h>
 #include <ruby/intern.h>
@@ -26,8 +27,8 @@
  * Datatypes
  * -------------------------------------------------------------- */
 
-typedef struct callback_t callback_t;
-struct callback_t {
+typedef struct rant_callback_t rant_callback_t;
+struct rant_callback_t {
 	void *data;
 	VALUE (*fn)( VALUE );
 	bool rval;
@@ -36,7 +37,15 @@ struct callback_t {
 	pthread_cond_t  cond;
 
 	bool handled;
-	callback_t *next;
+	rant_callback_t *next;
+};
+
+
+typedef struct rant_channel_t rant_channel_t;
+struct rant_channel_t {
+	unsigned char channel_num;
+	unsigned char buffer[ MESG_MAX_SIZE ];
+	VALUE callback;
 };
 
 
@@ -70,6 +79,13 @@ extern VALUE rant_cAntEvent;
 extern VALUE rant_cAntMessage;
 
 
+/* --------------------------------------------------------------
+ * Type-check macros
+ * -------------------------------------------------------------- */
+
+#define IsChannel( obj ) rb_obj_is_kind_of( (obj), rant_cAntChannel )
+
+
 /* -------------------------------------------------------
  * Initializer functions
  * ------------------------------------------------------- */
@@ -80,6 +96,8 @@ extern void init_ant_event _(( void ));
 extern void init_ant_message _(( void ));
 
 extern void rant_start_callback_thread _(( void ));
-extern bool rant_callback _(( callback_t * ));
+extern bool rant_callback _(( rant_callback_t * ));
+
+extern void rant_channel_clear_registry  _(( void ));
 
 #endif /* end of include guard: ANT_EXT_H_4CFF48F9 */

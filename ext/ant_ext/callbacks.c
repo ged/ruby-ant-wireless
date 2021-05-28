@@ -25,11 +25,11 @@
  */
 pthread_mutex_t rant_callback_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t rant_callback_cond   = PTHREAD_COND_INITIALIZER;
-callback_t *rant_callback_queue     = NULL;
+rant_callback_t *rant_callback_queue     = NULL;
 
 typedef struct callback_waiting_t callback_waiting_t;
 struct callback_waiting_t {
-	callback_t *callback;
+	rant_callback_t *callback;
 	bool abort;
 };
 
@@ -42,7 +42,7 @@ struct callback_waiting_t {
  * first. To remedy this, add to the end of the queue instead.
  */
 static void
-callback_queue_push( callback_t *callback )
+callback_queue_push( rant_callback_t *callback )
 {
 	callback->next = rant_callback_queue;
 	rant_callback_queue = callback;
@@ -53,10 +53,10 @@ callback_queue_push( callback_t *callback )
  * Use this function to pop off a callback node from the
  * global callback queue. Returns NULL if queue is empty.
  */
-static callback_t *
+static rant_callback_t *
 callback_queue_pop(void)
 {
-	callback_t *callback = rant_callback_queue;
+	rant_callback_t *callback = rant_callback_queue;
 
 	if ( callback )
 	{
@@ -70,7 +70,7 @@ callback_queue_pop(void)
  * Queue a +callback+ for handling by Ruby. Blocks until it's handled.
  */
 bool
-rant_callback( callback_t *callback )
+rant_callback( rant_callback_t *callback )
 {
 	pthread_mutex_init( &callback->mutex, NULL );
 	pthread_cond_init( &callback->cond, NULL );
@@ -112,7 +112,7 @@ rant_callback( callback_t *callback )
 static VALUE
 handle_callback( void *cb )
 {
-	callback_t *callback = (callback_t *)cb;
+	rant_callback_t *callback = (rant_callback_t *)cb;
 	int state = 0;
 	VALUE rval;
 
@@ -202,7 +202,7 @@ callback_thread( void *unused )
 		// if ruby wants us to abort, this will be NULL
 		if ( waiting.callback )
 		{
-			rant_log( "debug", "Starting a callback thread." );
+			// rant_log( "debug", "Starting a callback thread." );
 			rb_thread_create( handle_callback, (void *)waiting.callback );
 		}
 	}

@@ -12,18 +12,140 @@
 VALUE rant_cAntChannel;
 
 
+static void rant_channel_free( void * );
+static void rant_channel_mark( void * );
 
-static unsigned char
-rant_get_channel_number( VALUE channel )
+
+static const rb_data_type_t rant_channel_datatype_t = {
+	.wrap_struct_name = "Ant::Channel",
+	.function = {
+		.dmark = rant_channel_mark,
+		.dfree = rant_channel_free,
+	},
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+
+
+/*
+ * Free function
+ */
+static void
+rant_channel_free( void *ptr )
 {
-	return NUM2USHORT( rb_iv_get( channel, "@channel_number" ) );
+	if ( ptr ) {
+		rant_channel_t *channel = (rant_channel_t *)ptr;
+		ANT_AssignChannelEventFunction( channel->channel_num, NULL, NULL );
+		ANT_UnAssignChannel( channel->channel_num );
+
+		channel->callback = Qnil;
+
+		xfree( ptr );
+		ptr = NULL;
+	}
+}
+
+
+/*
+ * Mark function
+ */
+static void
+rant_channel_mark( void *ptr )
+{
+	rant_channel_t *channel = (rant_channel_t *)ptr;
+	rb_gc_mark( channel->callback );
+}
+
+
+/*
+ * Alloc function
+ */
+static VALUE
+rant_channel_alloc( VALUE klass )
+{
+	rant_channel_t *ptr;
+
+	VALUE rval = TypedData_Make_Struct( klass, rant_channel_t, &rant_channel_datatype_t, ptr );
+	ptr->callback = Qnil;
+
+	return rval;
+}
+
+
+
+/*
+ * Fetch the data pointer and check it for sanity.
+ */
+rant_channel_t *
+rant_get_channel( VALUE self )
+{
+	rant_channel_t *ptr;
+
+	if ( !IsChannel(self) ) {
+		rb_raise( rb_eTypeError, "wrong argument type %s (expected Ant::Channel)",
+			rb_class2name(CLASS_OF( self )) );
+	}
+
+	ptr = DATA_PTR( self );
+	assert( ptr );
+
+	return ptr;
+}
+
+
+/*
+ * Clear the registry after channel have been reset.
+ */
+void
+rant_channel_clear_registry()
+{
+	VALUE registry = rb_iv_get( rant_cAntChannel, "@registry" );
+	rb_hash_clear( registry );
+}
+
+
+
+/*
+ * call-seq:
+ *    channel.initialize
+ *
+ * Set up the channel.
+ *
+ */
+static VALUE
+rant_channel_init( VALUE self, VALUE channel_number, VALUE channel_type, VALUE network_number,
+	VALUE extended_options )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	VALUE registry = rb_iv_get( rant_cAntChannel, "@registry" );
+
+	ptr->channel_num = NUM2USHORT( channel_number );
+	MEMZERO( ptr->buffer, unsigned char, MESG_MAX_SIZE );
+
+	rb_iv_set( self, "@channel_type", channel_type );
+	rb_iv_set( self, "@network_number", network_number );
+	rb_iv_set( self, "@extended_options", extended_options );
+
+	rb_hash_aset( registry, channel_number, self );
+
+	return self;
 }
 
 
 static VALUE
-rant_channel_set_channel_id( int argc, VALUE *argv, VALUE channel )
+rant_channel_channel_number( VALUE self )
 {
-	const unsigned char ucANTChannel = rant_get_channel_number( channel );
+	rant_channel_t *ptr = rant_get_channel( self );
+
+	return INT2FIX( ptr->channel_num );
+}
+
+
+static VALUE
+rant_channel_set_channel_id( int argc, VALUE *argv, VALUE self )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
 	VALUE device_number, device_type, transmission_type, timeout;
 	unsigned short usDeviceNumber;
 	unsigned char ucDeviceType,
@@ -40,7 +162,7 @@ rant_channel_set_channel_id( int argc, VALUE *argv, VALUE channel )
 	if ( RTEST(timeout) )
 		ulResponseTime = NUM2UINT( timeout );
 
-	result = ANT_SetChannelId_RTO( ucANTChannel, usDeviceNumber, ucDeviceType,
+	result = ANT_SetChannelId_RTO( ptr->channel_num, usDeviceNumber, ucDeviceType,
 		ucTransmissionType, ulResponseTime );
 
 	if ( !result ) {
@@ -57,9 +179,9 @@ rant_channel_set_channel_id( int argc, VALUE *argv, VALUE channel )
 
 
 static VALUE
-rant_channel_open( int argc, VALUE *argv, VALUE channel )
+rant_channel_open( int argc, VALUE *argv, VALUE self )
 {
-	const unsigned char ucANTChannel = rant_get_channel_number( channel );
+	rant_channel_t *ptr = rant_get_channel( self );
 	VALUE timeout;
 	unsigned int ulResponseTime = 0;
 
@@ -68,7 +190,7 @@ rant_channel_open( int argc, VALUE *argv, VALUE channel )
 	if ( RTEST(timeout) )
 		ulResponseTime = NUM2UINT( timeout );
 
-	if ( !ANT_OpenChannel_RTO( ucANTChannel, ulResponseTime ) ) {
+	if ( !ANT_OpenChannel_RTO( ptr->channel_num, ulResponseTime ) ) {
 		rb_raise( rb_eRuntimeError, "Failed to open the channel." );
 	}
 
@@ -77,11 +199,19 @@ rant_channel_open( int argc, VALUE *argv, VALUE channel )
 }
 
 
+/*
+ * call-seq:
+ *    channel.close
+ *
+ * Close the channel and remove it from the registry.
+ *
+ */
 static VALUE
-rant_channel_close( int argc, VALUE *argv, VALUE channel )
+rant_channel_close( int argc, VALUE *argv, VALUE self )
 {
-	const unsigned char ucANTChannel = rant_get_channel_number( channel );
+	rant_channel_t *ptr = rant_get_channel( self );
 	VALUE timeout;
+	VALUE registry = rb_iv_get( rant_cAntChannel, "@registry" );
 	unsigned int ulResponseTime = 0;
 
 	rb_scan_args( argc, argv, "01", &timeout );
@@ -89,43 +219,193 @@ rant_channel_close( int argc, VALUE *argv, VALUE channel )
 	if ( RTEST(timeout) )
 		ulResponseTime = NUM2UINT( timeout );
 
-	if ( !ANT_CloseChannel_RTO( ucANTChannel, ulResponseTime ) ) {
+	rant_log_obj( self, "info", "Closing channel %d (with timeout %d).", ptr->channel_num, ulResponseTime );
+	if ( !ANT_CloseChannel_RTO( ptr->channel_num, ulResponseTime ) ) {
 		rb_raise( rb_eRuntimeError, "Failed to close the channel." );
+	}
+	rant_log_obj( self, "info", "Channel %d closed.", ptr->channel_num );
+
+	rb_hash_delete( registry, INT2FIX( ptr->channel_num ) );
+
+	return Qtrue;
+}
+
+
+/*
+ * call-seq:
+ *    channel.closed?   -> true or false
+ *
+ * Returns +true+ if the channel has been closed; i.e., if it's not longer the
+ * registered channel for its channel number.
+ *
+ */
+static VALUE
+rant_channel_closed_p( VALUE self )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	VALUE registry = rb_iv_get( rant_cAntChannel, "@registry" );
+	VALUE channel = rb_hash_lookup( registry, INT2FIX( ptr->channel_num ) );
+
+	return self == channel ? Qfalse : Qtrue;
+}
+
+
+/*
+ * Event callback functions
+ */
+
+struct on_event_call {
+	unsigned char ucANTChannel;
+	unsigned char ucEvent;
+};
+
+
+/*
+ * Handle the event callback -- Ruby side.
+ */
+static VALUE
+rant_channel_call_event_callback( VALUE callPtr )
+{
+	struct on_event_call *call = (struct on_event_call *)callPtr;
+	VALUE registry = rb_iv_get( rant_cAntChannel, "@registry" );
+	VALUE channel = rb_hash_fetch( registry, INT2FIX(call->ucANTChannel) );
+	rant_channel_t *ptr = rant_get_channel( channel );
+	VALUE rb_callback = ptr->callback;
+	VALUE rval = Qnil;
+
+	if ( RTEST(rb_callback) ) {
+		VALUE args[3];
+
+		args[0] = INT2FIX( call->ucANTChannel );
+		args[1] = INT2FIX( call->ucEvent );
+		args[2] = rb_enc_str_new( (char *)ptr->buffer, MESG_MAX_SIZE, rb_ascii8bit_encoding() );
+
+		rval = rb_funcallv_public( rb_callback, rb_intern("call"), 3, args );
+	}
+
+	return rval;
+}
+
+
+/*
+ * Handle the event callback -- C side.
+ */
+static BOOL
+rant_channel_on_event_callback( unsigned char ucANTChannel, unsigned char ucEvent )
+{
+	rant_callback_t callback;
+	struct on_event_call call;
+
+	call.ucANTChannel = ucANTChannel;
+	call.ucEvent = ucEvent;
+
+	callback.data = &call;
+	callback.fn = rant_channel_call_event_callback;
+
+	return rant_callback( &callback );
+}
+
+
+static VALUE
+rant_channel_on_event( int argc, VALUE *argv, VALUE self )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	VALUE callback = Qnil;
+
+	rb_scan_args( argc, argv, "0&", &callback );
+
+	if ( !RTEST(callback) ) {
+		rb_raise( rb_eLocalJumpError, "block required, but not given" );
+	}
+
+	rant_log( "debug", "Channel event callback is: %s", RSTRING_PTR(rb_inspect(callback)) );
+	ptr->callback = callback;
+
+	ANT_AssignChannelEventFunction( ptr->channel_num, rant_channel_on_event_callback, ptr->buffer );
+
+	return Qtrue;
+}
+
+
+static VALUE
+rant_channel_send_burst_transfer( VALUE self, VALUE data )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	unsigned char *data_s;
+	long data_len = RSTRING_LEN( data );
+	unsigned short usNumDataPackets = data_len / 8,
+		remainingBytes = data_len % 8;
+
+	data_s = ALLOC_N( unsigned char, data_len + 1 );
+	strlcpy( (char *)data_s, StringValuePtr(data), data_len + 1 );
+
+	// Pad it to 8-byte alignment
+	if ( remainingBytes ) {
+		int pad_bytes = (8 - remainingBytes);
+		REALLOC_N( data_s, unsigned char, data_len + pad_bytes + 1 );
+		memset( data_s + data_len, 0, pad_bytes );
+
+		usNumDataPackets += 1;
+	}
+
+	if ( !ANT_SendBurstTransfer(ptr->channel_num, data_s, usNumDataPackets) ) {
+		rb_raise( rb_eRuntimeError, "failed to send burst transfer." );
 	}
 
 	return Qtrue;
 }
 
 
-// BOOL ANT_SendBurstTransfer(UCHAR ucChannel, UCHAR* pucData, USHORT usNumDataPackets);
+static VALUE
+rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	unsigned short ucRFFreq = NUM2USHORT( frequency );
 
+	if ( ucRFFreq > 124 || ucRFFreq < 0 ) {
+		rb_raise( rb_eArgError, "frequency must be between 0 and 124." );
+	}
+
+	ANT_SetChannelRFFreq( ptr->channel_num, ucRFFreq );
+
+	return Qtrue;
+}
 
 
 void
 init_ant_channel()
 {
-
 #ifdef FOR_RDOC
 	rb_cData = rb_define_class( "Data" );
 	rant_mAnt = rb_define_module( "Ant" );
 #endif
 
 	rant_cAntChannel = rb_define_class_under( rant_mAnt, "Channel", rb_cObject );
+	rb_iv_set( rant_cAntChannel, "@registry", rb_hash_new() );
 
+	rb_define_alloc_func( rant_cAntChannel, rant_channel_alloc );
+	rb_define_protected_method( rant_cAntChannel, "initialize", rant_channel_init, 4 );
 
+	rb_define_method( rant_cAntChannel, "channel_number", rant_channel_channel_number, 0 );
+
+	rb_attr( rant_cAntChannel, rb_intern("channel_type"), 1, 0, 0 );
+	rb_attr( rant_cAntChannel, rb_intern("network_number"), 1, 0, 0 );
+	rb_attr( rant_cAntChannel, rb_intern("extended_options"), 1, 0, 0 );
 
 	rb_define_method( rant_cAntChannel, "set_channel_id", rant_channel_set_channel_id, -1 );
 	// rb_define_method( rant_cAntChannel, "set_channel_period",
 	// 	rant_channel_set_channel_period, -1 );
 	// rb_define_method( rant_cAntChannel, "set_channel_search_timeout",
 	// 	rant_channel_set_channel_search_timeout, -1 );
-	// rb_define_method( rant_cAntChannel, "set_channel_rf_freq",
-	// 	rant_channel_set_channel_rf_freq, -1 );
+	rb_define_method( rant_cAntChannel, "set_channel_rf_freq", rant_channel_set_channel_rf_freq, 1 );
 
 	rb_define_method( rant_cAntChannel, "open", rant_channel_open, -1 );
 	rb_define_method( rant_cAntChannel, "close", rant_channel_close, -1 );
+	rb_define_method( rant_cAntChannel, "closed?", rant_channel_closed_p, 0 );
 
-	// rb_define_method( rant_cAntChannel, "send_burst_transfer", rant_channel_send_burst_transfer, -1 );
+	rb_define_method( rant_cAntChannel, "send_burst_transfer", rant_channel_send_burst_transfer, 1 );
+
+	rb_define_method( rant_cAntChannel, "on_event", rant_channel_on_event, -1 );
 
 	rb_require( "ant/channel" );
 }

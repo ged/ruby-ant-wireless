@@ -208,10 +208,64 @@ rant_s_init( int argc, VALUE *argv, VALUE _module )
 
 
 
+/*
+ * call-seq:
+ *    Ant.close
+ *
+ * Close the USB connection to the ANT module.
+ *
+ */
 static VALUE
 rant_s_close( VALUE _module )
 {
 	ANT_Close();
+
+	rant_channel_clear_registry();
+
+	return Qtrue;
+}
+
+
+static VALUE
+rant_s_reset( VALUE _module )
+{
+	const struct timeval wait_time = {
+		.tv_sec = 1,
+		.tv_usec = 0,
+	};
+	ANT_ResetSystem();
+
+	// After a Reset System command has been issued, the application should wait
+	// 500ms to ensure that ANT is in the proper, “after-reset” state before any
+	// further commands are issued from the host.
+	rb_thread_wait_for( wait_time );
+
+	rant_channel_clear_registry();
+
+	return Qtrue;
+}
+
+
+/*
+ * call-seq:
+ *    Ant.set_network_key( 0, "\x0\x0\x0\x0\x0\x0\x0\x0" )
+ *
+ * Configures a network address for use by one of the available network numbers
+ *
+ */
+static VALUE
+rant_s_set_network_key( VALUE _module, VALUE network_number, VALUE key )
+{
+	const unsigned short ucNetNumber = NUM2USHORT( network_number );
+	const char *pucKey = StringValuePtr( key );
+
+	if ( RSTRING_LEN(key) != 8 ) {
+		rb_raise( rb_eArgError, "expected an 8-byte key" );
+	}
+
+	if ( !ANT_SetNetworkKey(ucNetNumber, (unsigned char *)pucKey) ) {
+		rb_raise( rb_eRuntimeError, "could not set the network key." );
+	}
 
 	return Qtrue;
 }
@@ -319,7 +373,7 @@ rant_call_response_callback( VALUE callPtr )
 static BOOL
 rant_on_response_callback( UCHAR ucChannel, UCHAR ucResponseMesgID )
 {
-	callback_t callback;
+	rant_callback_t callback;
 	struct on_response_call call;
 
 	call.ucChannel = ucChannel;
@@ -343,7 +397,6 @@ rant_on_response_callback( UCHAR ucChannel, UCHAR ucResponseMesgID )
  *        
  *    end
  */
-
 static VALUE
 rant_s_on_response( int argc, VALUE *argv, VALUE module )
 {
@@ -395,14 +448,12 @@ Init_ant_ext()
 	rb_define_singleton_method( rant_mAnt, "init", rant_s_init, -1 );
 	// rb_define_singleton_method( rant_mAnt, "init_ext", rant_s_init_ext, 4 );
 	rb_define_singleton_method( rant_mAnt, "close", rant_s_close, 0 );
+	rb_define_singleton_method( rant_mAnt, "reset", rant_s_reset, 0 );
 
+	rb_define_singleton_method( rant_mAnt, "set_network_key", rant_s_set_network_key, 2 );
 	rb_define_singleton_method( rant_mAnt, "assign_channel", rant_s_assign_channel, -1 );
 
 	rb_define_singleton_method( rant_mAnt, "on_response", rant_s_on_response, -1 );
-
-
-	// EXPORT void ANT_AssignResponseFunction(RESPONSE_FUNC pfResponse, UCHAR* pucResponseBuffer); // pucResponse buffer should be of size MESG_RESPONSE_EVENT_SIZE
-	// EXPORT void ANT_AssignChannelEventFunction(UCHAR ucANTChannel,CHANNEL_EVENT_FUNC pfChannelEvent, UCHAR *pucRxBuffer);
 	// EXPORT void ANT_UnassignAllResponseFunctions(); //Unassigns all response functions
 
 
