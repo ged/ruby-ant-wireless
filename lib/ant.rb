@@ -23,13 +23,14 @@ module Ant
 
 	Loggability.level = :debug
 
-	# Set a default response callback that just logs the event
-	self.on_response do |channel_num, message_id, data|
-		self.log.debug "Response for channel %d: %#0x: %s" % [
-			channel_num,
-			message_id,
-			data.bytes[ 0..3 ].map {|b| "%#02x" % b }.join( ' ' )
-		]
+
+	autoload :ResponseCallbacks, 'ant/response_callbacks'
+
+
+	### Set up the given +mod+ as the handler module for response callbacks.
+	def self::set_response_handlers( mod=Ant::ResponseCallbacks )
+		self.extend( mod )
+		self.on_response( &self.method(:handle_response_callback) )
 	end
 
 end # module Ant

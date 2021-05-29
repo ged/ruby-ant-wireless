@@ -230,8 +230,8 @@ static VALUE
 rant_s_reset( VALUE _module )
 {
 	const struct timeval wait_time = {
-		.tv_sec = 1,
-		.tv_usec = 0,
+		.tv_sec = 0,
+		.tv_usec = 500,
 	};
 	ANT_ResetSystem();
 

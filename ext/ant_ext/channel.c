@@ -362,7 +362,7 @@ rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
 	rant_channel_t *ptr = rant_get_channel( self );
 	unsigned short ucRFFreq = NUM2USHORT( frequency );
 
-	if ( ucRFFreq > 124 || ucRFFreq < 0 ) {
+	if ( ucRFFreq > 124 ) {
 		rb_raise( rb_eArgError, "frequency must be between 0 and 124." );
 	}
 

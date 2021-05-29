@@ -16,6 +16,13 @@ class Ant::Channel
 	DEFAULT_EXTENDED_OPTIONS = 0x0
 
 
+	# 
+	# Autoloads
+	# 
+
+	autoload :EventCallbacks, 'ant/channel/event_callbacks'
+
+
 	# Loggability API -- log to the Ant logger
 	log_to :ant
 
@@ -23,12 +30,22 @@ class Ant::Channel
 	private_class_method :new
 
 
-	singleton_class.attr_reader :registry
+	##
+	# Channel registry, keyed by channel number.
+	singleton_class.attr_reader( :registry )
 
 
 	######
 	public
 	######
+
+
+	### Set up the given +mod+ as the handler module for channel events.
+	def set_event_handlers( mod=Ant::Channel::EventCallbacks )
+		self.extend( mod )
+		self.on_event( &self.method(:handle_event_callback) )
+	end
+
 
 	### Return a human-readable version of the object suitable for debugging.
 	def inspect
