@@ -187,7 +187,7 @@ rant_s_init( int argc, VALUE *argv, VALUE _module )
 	rb_scan_args( argc, argv, "02", &device_num, &baud_rate );
 
 	if ( RTEST(device_num) ) {
-		ucUSBDeviceNum = NUM2USHORT( device_num );
+		ucUSBDeviceNum = NUM2CHR( device_num );
 	} else {
 		ucUSBDeviceNum = 0;
 	}
@@ -304,17 +304,17 @@ rant_s_assign_channel( int argc, VALUE *argv, VALUE _module )
 
 	rb_scan_args( argc, argv, "23", &channel, &channel_type, &network_number, &extended_options, &timeout );
 
-	ucChannel = NUM2UINT( channel );
-	ucChannelType = NUM2UINT( channel_type );
+	ucChannel = NUM2CHR( channel );
+	ucChannelType = NUM2CHR( channel_type );
 
 	if ( RTEST(network_number) ) {
-		ucNetworkNumber = NUM2UINT( network_number );
+		ucNetworkNumber = NUM2CHR( network_number );
 	}
 	if ( RTEST(extended_options) ) {
-		ucExtend = NUM2UINT( extended_options );
+		ucExtend = NUM2CHR( extended_options );
 	}
 	if ( RTEST(timeout) ) {
-		ulResponseTime = NUM2UINT( timeout );
+		ulResponseTime = NUM2CHR( timeout );
 	}
 
 	if ( !ANT_AssignChannelExt_RTO(ucChannel, ucChannelType, ucNetworkNumber, ucExtend, ulResponseTime) ) {

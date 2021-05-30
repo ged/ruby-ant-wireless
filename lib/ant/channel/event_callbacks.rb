@@ -7,6 +7,9 @@ require 'ant/channel' unless defined?( Ant::Channel )
 
 
 # A module that contains logging event callbacks for an ANT::Channel.
+#
+# Refs:
+# * 9.5.6.1 Channel Response / Event (0x40) [ANT Message Protocol and Usage, Rev 5.1]
 module Ant::Channel::EventCallbacks
 	extend Loggability
 
@@ -56,25 +59,68 @@ module Ant::Channel::EventCallbacks
 
 	### Handle an TX event.
 	def on_event_tx( channel_num, data )
-		self.log.info "Message on channel %d was transmitted." % [ channel_num ]
+		self.log.info "Broadcast message on channel %d was transmitted." % [ channel_num ]
 	end
 
 
-	### Handle an RX_SEARCH_TIMEOUT event.
+	### Handle a RX_SEARCH_TIMEOUT event.
 	def on_event_rx_search_timeout( channel_num, * )
 		self.log.warn "Search timeout on channel %d." % [ channel_num ]
 	end
 
 
-	### Handle an EVENT_TRANSFER_TX_FAILED event.
-	def on_event_rx_search_timeout( channel_num, * )
+	### Handle a RX_FAIL event.
+	def on_event_rx_fail( channel_num, * )
+		self.log.warn "Receive failed on channel %d." % [ channel_num ]
+	end
+
+
+	### Handle a TX event.
+	def on_event_tx( channel_num, * )
+		self.log.warn "Transfer completed on channel %d." % [ channel_num ]
+	end
+
+
+	### Handle a TRANSFER_RX_FAILED event.
+	def on_event_transfer_rx_failed( channel_num, * )
+		self.log.warn "Receive failed on channel %d." % [ channel_num ]
+	end
+
+
+	### Handle a TRANSFER_TX_COMPLETED event.
+	def on_event_transfer_tx_completed( channel_num, * )
+		self.log.warn "Transfer completed on channel %d." % [ channel_num ]
+	end
+
+
+	### Handle a TRANSFER_TX_FAILED event.
+	def on_event_transfer_tx_failed( channel_num, * )
 		self.log.warn "Transfer failed on channel %d." % [ channel_num ]
 	end
 
 
-	### Handle an CHANNEL_CLOSED event.
+	### Handle a CHANNEL_CLOSED event.
 	def on_event_channel_closed( channel_num, * )
-		self.log.warn "Channel %d closed." % [ channel_num ]
+		self.log.warn "Channel %d was closed." % [ channel_num ]
 	end
+
+
+	### Handle a RX_FAIL_GO_TO_SEARCH event.
+	def on_event_rx_fail_go_to_search( channel_num, * )
+		self.log.warn "Channel %d dropped; resume search." % [ channel_num ]
+	end
+
+
+	### Handle a CHANNEL_COLLISION event.
+	def on_event_channel_collision( channel_num, * )
+		self.log.warn "Channel collision on channel %d." % [ channel_num ]
+	end
+
+
+	### Handle a TRANSFER_TX_START event.
+	def on_event_transfer_tx_start( channel_num, * )
+		self.log.warn "Burst transfer started on channel %d." % [ channel_num ]
+	end
+
 
 end # module Ant::Channel::EventCallbacks

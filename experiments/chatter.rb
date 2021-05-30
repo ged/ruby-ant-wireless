@@ -104,14 +104,14 @@ class Chatter
 
 		case mode
 		when :master
-			channel_type = Ant::PARAMETER_RX_NOT_TX
+			channel_type = Ant::PARAMETER_TX_NOT_RX
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
 			# ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG|DEVICE_TYPE, 1 )
 			ch.set_channel_id( DEVICE_NUMBER, DEVICE_TYPE, 1 )
 		when :slave
-			channel_type = Ant::PARAMETER_TX_NOT_RX
+			channel_type = Ant::PARAMETER_RX_NOT_TX
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
-			ch.set_channel_id( DEVICE_NUMBER, 0, 0 )
+			ch.set_channel_id( 0, 0, 0 )
 		end
 
 		ch.set_event_handlers
