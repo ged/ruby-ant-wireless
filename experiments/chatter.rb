@@ -64,6 +64,8 @@ class Chatter
 		@channel = self.open_channel( self.mode )
 		self.start_read_loop
 	ensure
+		$stdin.close
+
 		$stderr.puts "Closing ANT down."
 		Ant.reset
 		Ant.close

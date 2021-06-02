@@ -75,12 +75,6 @@ module Ant::Channel::EventCallbacks
 	end
 
 
-	### Handle a TX event.
-	def on_event_tx( channel_num, * )
-		self.log.warn "Transfer completed on channel %d." % [ channel_num ]
-	end
-
-
 	### Handle a TRANSFER_RX_FAILED event.
 	def on_event_transfer_rx_failed( channel_num, * )
 		self.log.warn "Receive failed on channel %d." % [ channel_num ]
