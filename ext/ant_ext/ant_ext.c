@@ -279,7 +279,7 @@ rant_s_set_network_key( VALUE _module, VALUE network_number, VALUE key )
  * reserves a channel number and assigns the type and network number to the
  * channel. The optional extended assignment byte allows for the following
  * features to be enabled:
- * 
+ *
  * +EXT_PARAM_FREQUENCY_AGILITY+:: enable frequency agility
  * +EXT_PARAM_BACKGROUND_SCANNING+:: enable background scanning
  * +EXT_PARAM_FAST_CHANNEL_INIT+:: enable fast channel initiation
@@ -330,6 +330,26 @@ rant_s_assign_channel( int argc, VALUE *argv, VALUE _module )
 	args[3] = extended_options;
 
 	return rb_class_new_instance( 4, args, rant_cAntChannel );
+}
+
+
+/*
+ * call-seq:
+ *    Ant.use_extended_messages = true or false
+ *
+ * Enable or disable extended Rx messages. If the device supports it, when
+ * ANT will include the channel ID with the data message.
+ *
+ */
+static VALUE
+rant_s_use_extended_messages_eq( VALUE _module, VALUE true_false )
+{
+	const unsigned char ucEnable = RTEST( true_false ) ? 1 : 0;
+
+	rant_log( "info", "%s extended messages.", ucEnable ? "Enabling" : "Disabling" );
+	ANT_RxExtMesgsEnable( ucEnable );
+
+	return Qtrue;
 }
 
 
@@ -394,7 +414,7 @@ rant_on_response_callback( UCHAR ucChannel, UCHAR ucResponseMesgID )
  * message is received from ANT.
  *
  *    Ant.on_response do |channel, response_msg_id, data|
- *        
+ *
  *    end
  */
 static VALUE
@@ -452,6 +472,9 @@ Init_ant_ext()
 
 	rb_define_singleton_method( rant_mAnt, "set_network_key", rant_s_set_network_key, 2 );
 	rb_define_singleton_method( rant_mAnt, "assign_channel", rant_s_assign_channel, -1 );
+
+	rb_define_singleton_method( rant_mAnt, "use_extended_messages=",
+		rant_s_use_extended_messages_eq, 1 );
 
 	rb_define_singleton_method( rant_mAnt, "on_response", rant_s_on_response, -1 );
 	// EXPORT void ANT_UnassignAllResponseFunctions(); //Unassigns all response functions

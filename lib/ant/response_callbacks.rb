@@ -213,313 +213,313 @@ module Ant::ResponseCallbacks
 
 
 	### 
-	def on_channel_mesg_period
+	def on_channel_mesg_period( channel_num, data )
 		self.log_response_event( channel_num, data, "channel_mesg_period", "Channel assigned." )
 	end
 
 
 	### Handle channel_search_timeout response event.
-	def on_channel_search_timeout
+	def on_channel_search_timeout( channel_num, data )
 		self.log_response_event( channel_num, data, "channel_search_timeout", "Channel assigned." )
 	end
 
 
 	### Handle radio_tx_power response event.
-	def on_radio_tx_power
+	def on_radio_tx_power( channel_num, data )
 		self.log_response_event( channel_num, data, "radio_tx_power", "Channel assigned." )
 	end
 
 
 	### Handle radio_cw_mode response event.
-	def on_radio_cw_mode
+	def on_radio_cw_mode( channel_num, data )
 		self.log_response_event( channel_num, data, "radio_cw_mode", "Channel assigned." )
 	end
 
 
 	### Handle system_reset response event.
-	def on_system_reset
+	def on_system_reset( channel_num, data )
 		self.log_response_event( channel_num, data, "system_reset", "Channel assigned." )
 	end
 
 
 	### Handle request response event.
-	def on_request
+	def on_request( channel_num, data )
 		self.log_response_event( channel_num, data, "request", "Channel assigned." )
 	end
 
 
 	### Handle broadcast_data response event.
-	def on_broadcast_data
+	def on_broadcast_data( channel_num, data )
 		self.log_response_event( channel_num, data, "broadcast_data", "Channel assigned." )
 	end
 
 
 	### Handle acknowledged_data response event.
-	def on_acknowledged_data
+	def on_acknowledged_data( channel_num, data )
 		self.log_response_event( channel_num, data, "acknowledged_data", "Channel assigned." )
 	end
 
 
 	### Handle burst_data response event.
-	def on_burst_data
+	def on_burst_data( channel_num, data )
 		self.log_response_event( channel_num, data, "burst_data", "Channel assigned." )
 	end
 
 
 	### Handle channel_status response event.
-	def on_channel_status
+	def on_channel_status( channel_num, data )
 		self.log_response_event( channel_num, data, "channel_status", "Channel assigned." )
 	end
 
 
 	### Handle radio_cw_init response event.
-	def on_radio_cw_init
+	def on_radio_cw_init( channel_num, data )
 		self.log_response_event( channel_num, data, "radio_cw_init", "Channel assigned." )
 	end
 
 
 	### Handle capabilities response event.
-	def on_capabilities
+	def on_capabilities( channel_num, data )
 		self.log_response_event( channel_num, data, "capabilities", "Channel assigned." )
 	end
 
 
 	### Handle stacklimit response event.
-	def on_stacklimit
+	def on_stacklimit( channel_num, data )
 		self.log_response_event( channel_num, data, "stacklimit", "Channel assigned." )
 	end
 
 
 	### Handle script_data response event.
-	def on_script_data
+	def on_script_data( channel_num, data )
 		self.log_response_event( channel_num, data, "script_data", "Channel assigned." )
 	end
 
 
 	### Handle script_cmd response event.
-	def on_script_cmd
+	def on_script_cmd( channel_num, data )
 		self.log_response_event( channel_num, data, "script_cmd", "Channel assigned." )
 	end
 
 
 	### Handle id_list_add response event.
-	def on_id_list_add
+	def on_id_list_add( channel_num, data )
 		self.log_response_event( channel_num, data, "id_list_add", "Channel assigned." )
 	end
 
 
 	### Handle crypto_id_list_add response event.
-	def on_crypto_id_list_add
+	def on_crypto_id_list_add( channel_num, data )
 		self.log_response_event( channel_num, data, "crypto_id_list_add", "Channel assigned." )
 	end
 
 
 	### Handle id_list_config response event.
-	def on_id_list_config
+	def on_id_list_config( channel_num, data )
 		self.log_response_event( channel_num, data, "id_list_config", "Channel assigned." )
 	end
 
 
 	### Handle crypto_id_list_config response event.
-	def on_crypto_id_list_config
+	def on_crypto_id_list_config( channel_num, data )
 		self.log_response_event( channel_num, data, "crypto_id_list_config", "Channel assigned." )
 	end
 
 
 	### Handle open_rx_scan response event.
-	def on_open_rx_scan
+	def on_open_rx_scan( channel_num, data )
 		self.log_response_event( channel_num, data, "open_rx_scan", "Channel assigned." )
 	end
 
 
 	### Handle ext_channel_radio_freq_id response event.
-	def on_ext_channel_radio_freq_id
+	def on_ext_channel_radio_freq_id( channel_num, data )
 		self.log_response_event( channel_num, data, "ext_channel_radio_freq_id", "Channel assigned." )
 	end
 
 
 	### Handle ext_broadcast_data response event.
-	def on_ext_broadcast_data
+	def on_ext_broadcast_data( channel_num, data )
 		self.log_response_event( channel_num, data, "ext_broadcast_data", "Channel assigned." )
 	end
 
 
 	### Handle ext_acknowledged_data response event.
-	def on_ext_acknowledged_data
+	def on_ext_acknowledged_data( channel_num, data )
 		self.log_response_event( channel_num, data, "ext_acknowledged_data", "Channel assigned." )
 	end
 
 
 	### Handle ext_burst_data response event.
-	def on_ext_burst_data
+	def on_ext_burst_data( channel_num, data )
 		self.log_response_event( channel_num, data, "ext_burst_data", "Channel assigned." )
 	end
 
 
 	### Handle channel_radio_tx_power response event.
-	def on_channel_radio_tx_power
+	def on_channel_radio_tx_power( channel_num, data )
 		self.log_response_event( channel_num, data, "channel_radio_tx_power", "Channel assigned." )
 	end
 
 
 	### Handle get_serial_num response event.
-	def on_get_serial_num
+	def on_get_serial_num( channel_num, data )
 		self.log_response_event( channel_num, data, "get_serial_num", "Channel assigned." )
 	end
 
 
 	### Handle get_temp_cal response event.
-	def on_get_temp_cal
+	def on_get_temp_cal( channel_num, data )
 		self.log_response_event( channel_num, data, "get_temp_cal", "Channel assigned." )
 	end
 
 
 	### Handle set_lp_search_timeout response event.
-	def on_set_lp_search_timeout
+	def on_set_lp_search_timeout( channel_num, data )
 		self.log_response_event( channel_num, data, "set_lp_search_timeout", "Channel assigned." )
 	end
 
 
 	### Handle set_tx_search_on_next response event.
-	def on_set_tx_search_on_next
+	def on_set_tx_search_on_next( channel_num, data )
 		self.log_response_event( channel_num, data, "set_tx_search_on_next", "Channel assigned." )
 	end
 
 
 	### Handle serial_num_set_channel_id response event.
-	def on_serial_num_set_channel_id
+	def on_serial_num_set_channel_id( channel_num, data )
 		self.log_response_event( channel_num, data, "serial_num_set_channel_id", "Channel assigned." )
 	end
 
 
 	### Handle rx_ext_mesgs_enable response event.
-	def on_rx_ext_mesgs_enable
+	def on_rx_ext_mesgs_enable( channel_num, data )
 		self.log_response_event( channel_num, data, "rx_ext_mesgs_enable", "Channel assigned." )
 	end
 
 
 	### Handle radio_config_always response event.
-	def on_radio_config_always
+	def on_radio_config_always( channel_num, data )
 		self.log_response_event( channel_num, data, "radio_config_always", "Channel assigned." )
 	end
 
 
 	### Handle enable_led_flash response event.
-	def on_enable_led_flash
+	def on_enable_led_flash( channel_num, data )
 		self.log_response_event( channel_num, data, "enable_led_flash", "Channel assigned." )
 	end
 
 
 	### Handle xtal_enable response event.
-	def on_xtal_enable
+	def on_xtal_enable( channel_num, data )
 		self.log_response_event( channel_num, data, "xtal_enable", "Channel assigned." )
 	end
 
 
 	### Handle antlib_config response event.
-	def on_antlib_config
+	def on_antlib_config( channel_num, data )
 		self.log_response_event( channel_num, data, "antlib_config", "Channel assigned." )
 	end
 
 
 	### Handle auto_freq_config response event.
-	def on_auto_freq_config
+	def on_auto_freq_config( channel_num, data )
 		self.log_response_event( channel_num, data, "auto_freq_config", "Channel assigned." )
 	end
 
 
 	### Handle prox_search_config response event.
-	def on_prox_search_config
+	def on_prox_search_config( channel_num, data )
 		self.log_response_event( channel_num, data, "prox_search_config", "Channel assigned." )
 	end
 
 
 	### Handle adv_burst_data response event.
-	def on_adv_burst_data
+	def on_adv_burst_data( channel_num, data )
 		self.log_response_event( channel_num, data, "adv_burst_data", "Channel assigned." )
 	end
 
 
 	### Handle event_buffering_config response event.
-	def on_event_buffering_config
+	def on_event_buffering_config( channel_num, data )
 		self.log_response_event( channel_num, data, "event_buffering_config", "Channel assigned." )
 	end
 
 
 	### Handle set_search_ch_priority response event.
-	def on_set_search_ch_priority
+	def on_set_search_ch_priority( channel_num, data )
 		self.log_response_event( channel_num, data, "set_search_ch_priority", "Channel assigned." )
 	end
 
 
 	### Handle high_duty_search_mode response event.
-	def on_high_duty_search_mode
+	def on_high_duty_search_mode( channel_num, data )
 		self.log_response_event( channel_num, data, "high_duty_search_mode", "Channel assigned." )
 	end
 
 
 	### Handle config_adv_burst response event.
-	def on_config_adv_burst
+	def on_config_adv_burst( channel_num, data )
 		self.log_response_event( channel_num, data, "config_adv_burst", "Channel assigned." )
 	end
 
 
 	### Handle event_filter_config response event.
-	def on_event_filter_config
+	def on_event_filter_config( channel_num, data )
 		self.log_response_event( channel_num, data, "event_filter_config", "Channel assigned." )
 	end
 
 
 	### Handle sdu_config response event.
-	def on_sdu_config
+	def on_sdu_config( channel_num, data )
 		self.log_response_event( channel_num, data, "sdu_config", "Channel assigned." )
 	end
 
 
 	### Handle sdu_set_mask response event.
-	def on_sdu_set_mask
+	def on_sdu_set_mask( channel_num, data )
 		self.log_response_event( channel_num, data, "sdu_set_mask", "Channel assigned." )
 	end
 
 
 	### Handle user_config_page response event.
-	def on_user_config_page
+	def on_user_config_page( channel_num, data )
 		self.log_response_event( channel_num, data, "user_config_page", "Channel assigned." )
 	end
 
 
 	### Handle encrypt_enable response event.
-	def on_encrypt_enable
+	def on_encrypt_enable( channel_num, data )
 		self.log_response_event( channel_num, data, "encrypt_enable", "Channel assigned." )
 	end
 
 
 	### Handle set_crypto_key response event.
-	def on_set_crypto_key
+	def on_set_crypto_key( channel_num, data )
 		self.log_response_event( channel_num, data, "set_crypto_key", "Channel assigned." )
 	end
 
 
 	### Handle set_crypto_info response event.
-	def on_set_crypto_info
+	def on_set_crypto_info( channel_num, data )
 		self.log_response_event( channel_num, data, "set_crypto_info", "Channel assigned." )
 	end
 
 
 	### Handle cube_cmd response event.
-	def on_cube_cmd
+	def on_cube_cmd( channel_num, data )
 		self.log_response_event( channel_num, data, "cube_cmd", "Channel assigned." )
 	end
 
 
 	### Handle active_search_sharing response event.
-	def on_active_search_sharing
+	def on_active_search_sharing( channel_num, data )
 		self.log_response_event( channel_num, data, "active_search_sharing", "Channel assigned." )
 	end
 
 
 	### Handle nvm_crypto_key_ops response event.
-	def on_nvm_crypto_key_ops
+	def on_nvm_crypto_key_ops( channel_num, data )
 		self.log_response_event( channel_num, data, "nvm_crypto_key_ops", "Channel assigned." )
 	end
 

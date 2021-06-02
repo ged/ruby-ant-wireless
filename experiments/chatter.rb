@@ -119,6 +119,7 @@ class Chatter
 		ch.set_event_handlers
 		ch.set_channel_rf_freq( CHANNEL_RF_FREQ )
 		ch.open
+		Ant.use_extended_messages = true
 
 		return ch
 	end
