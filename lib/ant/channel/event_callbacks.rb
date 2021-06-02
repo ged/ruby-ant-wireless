@@ -20,17 +20,32 @@ module Ant::Channel::EventCallbacks
 
 	# Mapping of response message IDs to handler methods
 	HANDLER_METHODS = {
-		Ant::EVENT_RX_SEARCH_TIMEOUT     => :on_event_rx_search_timeout,
+		Ant::EVENT_CHANNEL_CLOSED        => :on_event_channel_closed,
+		Ant::EVENT_CHANNEL_COLLISION     => :on_event_channel_collision,
+		Ant::EVENT_RX_ACKNOWLEDGED       => :on_event_rx_acknowledged,
+		Ant::EVENT_RX_BROADCAST          => :on_event_rx_broadcast,
+		Ant::EVENT_RX_BURST_PACKET       => :on_event_rx_burst_packet,
+		Ant::EVENT_RX_EXT_ACKNOWLEDGED   => :on_event_rx_ext_acknowledged,
+		Ant::EVENT_RX_EXT_BROADCAST      => :on_event_rx_ext_broadcast,
+		Ant::EVENT_RX_EXT_BURST_PACKET   => :on_event_rx_ext_burst_packet,
 		Ant::EVENT_RX_FAIL               => :on_event_rx_fail,
-		Ant::EVENT_TX                    => :on_event_tx,
+		Ant::EVENT_RX_FAIL_GO_TO_SEARCH  => :on_event_rx_fail_go_to_search,
+		Ant::EVENT_RX_FLAG_ACKNOWLEDGED  => :on_event_rx_flag_acknowledged,
+		Ant::EVENT_RX_FLAG_BROADCAST     => :on_event_rx_flag_broadcast,
+		Ant::EVENT_RX_FLAG_BURST_PACKET  => :on_event_rx_flag_burst_packet,
+		Ant::EVENT_RX_SEARCH_TIMEOUT     => :on_event_rx_search_timeout,
 		Ant::EVENT_TRANSFER_RX_FAILED    => :on_event_transfer_rx_failed,
 		Ant::EVENT_TRANSFER_TX_COMPLETED => :on_event_transfer_tx_completed,
 		Ant::EVENT_TRANSFER_TX_FAILED    => :on_event_transfer_tx_failed,
-		Ant::EVENT_CHANNEL_CLOSED        => :on_event_channel_closed,
-		Ant::EVENT_RX_FAIL_GO_TO_SEARCH  => :on_event_rx_fail_go_to_search,
-		Ant::EVENT_CHANNEL_COLLISION     => :on_event_channel_collision,
 		Ant::EVENT_TRANSFER_TX_START     => :on_event_transfer_tx_start,
+		Ant::EVENT_TX                    => :on_event_tx,
 	}
+
+	# The mask of the channel number in buffer data
+	CHANNEL_NUMBER_MASK = 0x1F
+
+	# The mask of the sequence number in buffer data
+	SEQUENCE_NUMBER_MASK = 0xE0
 
 
 	### Default callback hook -- handles event callbacks.
@@ -116,5 +131,37 @@ module Ant::Channel::EventCallbacks
 		self.log.warn "Burst transfer started on channel %d." % [ channel_num ]
 	end
 
+
+	# def on_event_rx_flag_acknowledged( channel_num, data )
+	#
+	# end
+	# def on_event_rx_flag_burst_packet( channel_num, data )
+	#
+	# end
+	# def on_event_rx_flag_broadcast( channel_num, data )
+	#
+	# end
+	# def on_event_rx_acknowledged( channel_num, data )
+	#
+	# end
+	def on_event_rx_burst_packet( channel_num, data )
+		channel = (data.bytes[0] & CHANNEL_NUMBER_MASK) >> 5
+		sequence_num = data.bytes[0] & SEQUENCE_NUMBER_MASK
+
+		self.log.info "Burst (0x%02x): Rx: %d [%p]" % [ channel, sequence_num, data[1..9] ]
+	end
+
+	def on_event_rx_broadcast( channel_num, data )
+		self.log.info "Broadcast: Rx: %d" % [ data.bytes[0] ]
+	end
+	# def on_event_rx_ext_acknowledged( channel_num, data )
+	#
+	# end
+	# def on_event_rx_ext_burst_packet( channel_num, data )
+	#
+	# end
+	# def on_event_rx_ext_broadcast( channel_num, data )
+	#
+	# end
 
 end # module Ant::Channel::EventCallbacks
