@@ -173,7 +173,7 @@ module Ant::Channel::EventCallbacks
 
 
 	def on_event_rx_broadcast( channel_num, data )
-		self.log.info "Broadcast: Rx: %s" % [ hexdump(data[1..9]) ]
+		self.log.info "Broadcast: Rx:\n%s" % [ hexdump(data[1..9]) ]
 	end
 
 
