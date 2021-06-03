@@ -168,7 +168,7 @@ module Ant::Channel::EventCallbacks
 		channel = (data.bytes[0] & CHANNEL_NUMBER_MASK) >> 5
 		sequence_num = data.bytes[0] & SEQUENCE_NUMBER_MASK
 
-		self.log.info "Burst (0x%02x): Rx: %d [%p]" % [ channel, sequence_num, data[1..9] ]
+		self.log.info "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, hexdump(data[1..9]) ]
 	end
 
 
