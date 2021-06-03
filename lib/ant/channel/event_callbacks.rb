@@ -14,7 +14,7 @@ require 'ant/mixins'
 # * 9.5.6.1 Channel Response / Event (0x40) [ANT Message Protocol and Usage, Rev 5.1]
 module Ant::Channel::EventCallbacks
 	extend Loggability
-	include DataUtilities
+	include Ant::DataUtilities
 
 
 	# Loggability API -- send logs to the Ant logger
