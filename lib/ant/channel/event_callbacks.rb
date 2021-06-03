@@ -5,6 +5,7 @@ require 'securerandom'
 require 'loggability'
 
 require 'ant/channel' unless defined?( Ant::Channel )
+require 'ant/mixins'
 
 
 # A module that contains logging event callbacks for an ANT::Channel.
@@ -13,6 +14,7 @@ require 'ant/channel' unless defined?( Ant::Channel )
 # * 9.5.6.1 Channel Response / Event (0x40) [ANT Message Protocol and Usage, Rev 5.1]
 module Ant::Channel::EventCallbacks
 	extend Loggability
+	include DataUtilities
 
 
 	# Loggability API -- send logs to the Ant logger
@@ -68,7 +70,7 @@ module Ant::Channel::EventCallbacks
 			channel_num,
 			event_id,
 			handler_method,
-			hexify( data[ 0..3 ] )
+			Ant::DataUtilities.hexdump( data[ 0..3 ] )
 		]
 	end
 
@@ -171,7 +173,7 @@ module Ant::Channel::EventCallbacks
 
 
 	def on_event_rx_broadcast( channel_num, data )
-		self.log.info "Broadcast: Rx: %s" % [ hexify(data[1..9]) ]
+		self.log.info "Broadcast: Rx: %s" % [ hexdump(data[1..9]) ]
 	end
 
 
@@ -185,12 +187,5 @@ module Ant::Channel::EventCallbacks
 	#
 	# end
 
-
-	### Return the given +data+ in hexdump format.
-	def hexify( data )
-		return data.bytes.map do |b|
-			"0x%02x" % [ b ]
-		end.join( ' ' )
-	end
 
 end # module Ant::Channel::EventCallbacks

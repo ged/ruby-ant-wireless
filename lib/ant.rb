@@ -25,6 +25,7 @@ module Ant
 
 
 	autoload :ResponseCallbacks, 'ant/response_callbacks'
+	autoload :DataUtilities, 'ant/mixins'
 
 
 	### Set up the given +mod+ as the handler module for response callbacks.
