@@ -77,10 +77,10 @@ module Ant::Channel::EventCallbacks
 
 	### Handle an TX event.
 	def on_event_tx( channel_num, data )
-		self.log.info "Broadcast message on channel %d was transmitted." % [ channel_num ]
+		# self.log.info "Broadcast message on channel %d was transmitted." % [ channel_num ]
 
 		data = SecureRandom.bytes( 8 )
-		self.log.debug "Sending our own broadcast data: %p." % [ data ]
+		# self.log.debug "Sending our own broadcast data: %p." % [ data ]
 		self.send_broadcast_data( data )
 	end
 

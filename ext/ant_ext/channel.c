@@ -11,6 +11,7 @@
 
 VALUE rant_cAntChannel;
 
+VALUE rant_mAntDataUtilities;
 
 static void rant_channel_free( void * );
 static void rant_channel_mark( void * );
@@ -348,6 +349,10 @@ rant_channel_send_burst_transfer( VALUE self, VALUE data )
 		usNumDataPackets += 1;
 	}
 
+	VALUE data_string = rb_enc_str_new( (char *)data_s, usNumDataPackets * 8, rb_ascii8bit_encoding() );
+	VALUE hexdump = rb_funcall( rant_mAntDataUtilities, rb_intern("hexdump"), 1, data_string );
+
+	rant_log_obj( self, "debug", "Sending burst packets:\n%s", RSTRING_PTR(hexdump) );
 	if ( !ANT_SendBurstTransfer(ptr->channel_num, data_s, usNumDataPackets) ) {
 		rb_raise( rb_eRuntimeError, "failed to send burst transfer." );
 	}
@@ -412,6 +417,8 @@ init_ant_channel()
 
 	rant_cAntChannel = rb_define_class_under( rant_mAnt, "Channel", rb_cObject );
 	rb_iv_set( rant_cAntChannel, "@registry", rb_hash_new() );
+
+	rant_mAntDataUtilities = rb_define_module_under( rant_mAnt, "DataUtilities" );
 
 	rb_define_alloc_func( rant_cAntChannel, rant_channel_alloc );
 	rb_define_protected_method( rant_cAntChannel, "initialize", rant_channel_init, 4 );
