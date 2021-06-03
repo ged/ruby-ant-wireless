@@ -336,13 +336,13 @@ rant_channel_send_burst_transfer( VALUE self, VALUE data )
 	unsigned short usNumDataPackets = data_len / 8,
 		remainingBytes = data_len % 8;
 
-	data_s = ALLOC_N( unsigned char, data_len + 1 );
-	strlcpy( (char *)data_s, StringValuePtr(data), data_len + 1 );
+	data_s = ALLOC_N( unsigned char, data_len );
+	strncpy( (char *)data_s, StringValuePtr(data), data_len );
 
 	// Pad it to 8-byte alignment
 	if ( remainingBytes ) {
 		int pad_bytes = (8 - remainingBytes);
-		REALLOC_N( data_s, unsigned char, data_len + pad_bytes + 1 );
+		REALLOC_N( data_s, unsigned char, data_len + pad_bytes );
 		memset( data_s + data_len, 0, pad_bytes );
 
 		usNumDataPackets += 1;
@@ -351,6 +351,36 @@ rant_channel_send_burst_transfer( VALUE self, VALUE data )
 	if ( !ANT_SendBurstTransfer(ptr->channel_num, data_s, usNumDataPackets) ) {
 		rb_raise( rb_eRuntimeError, "failed to send burst transfer." );
 	}
+
+	return Qtrue;
+}
+
+
+static VALUE
+rant_channel_send_acknowledged_data( VALUE self, VALUE data )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	UCHAR aucTempBuffer[] = {1,2,3,4,5,6,7,8};
+
+	ANT_SendAcknowledgedData( ptr->channel_num, aucTempBuffer );
+
+	return Qtrue;
+}
+
+
+static VALUE
+rant_channel_send_broadcast_data( VALUE self, VALUE data )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	UCHAR aucTempBuffer[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
+
+	StringValue( data );
+	if ( RSTRING_LEN(data) > 8 ) {
+		rb_raise( rb_eArgError, "Data can't be longer than 8 bytes." );
+	}
+	strncpy( (char *)aucTempBuffer, StringValuePtr(data), RSTRING_LEN(data) );
+
+	ANT_SendBroadcastData( ptr->channel_num, aucTempBuffer );
 
 	return Qtrue;
 }
@@ -404,6 +434,8 @@ init_ant_channel()
 	rb_define_method( rant_cAntChannel, "closed?", rant_channel_closed_p, 0 );
 
 	rb_define_method( rant_cAntChannel, "send_burst_transfer", rant_channel_send_burst_transfer, 1 );
+	rb_define_method( rant_cAntChannel, "send_acknowledged_data", rant_channel_send_acknowledged_data, 1 );
+	rb_define_method( rant_cAntChannel, "send_broadcast_data", rant_channel_send_broadcast_data, 1 );
 
 	rb_define_method( rant_cAntChannel, "on_event", rant_channel_on_event, -1 );
 

@@ -226,6 +226,15 @@ rant_s_close( VALUE _module )
 }
 
 
+/*
+ * call-seq:
+ *    Ant.reset
+ *
+ * Reset the system and put it in a known, low-power state. Execution of this
+ * command terminates all channels. All information previously configured in the
+ * system can no longer be considered valid. 
+ *
+ */
 static VALUE
 rant_s_reset( VALUE _module )
 {
@@ -235,12 +244,12 @@ rant_s_reset( VALUE _module )
 	};
 	ANT_ResetSystem();
 
+	rant_channel_clear_registry();
+
 	// After a Reset System command has been issued, the application should wait
 	// 500ms to ensure that ANT is in the proper, “after-reset” state before any
 	// further commands are issued from the host.
 	rb_thread_wait_for( wait_time );
-
-	rant_channel_clear_registry();
 
 	return Qtrue;
 }
@@ -344,7 +353,9 @@ rant_s_assign_channel( int argc, VALUE *argv, VALUE _module )
 static VALUE
 rant_s_use_extended_messages_eq( VALUE _module, VALUE true_false )
 {
-	const unsigned char ucEnable = RTEST( true_false ) ? 1 : 0;
+	// This is documented as an unsigned char and then explicitly cast
+	// to a signed char. So this just uses their typedef.
+	const BOOL ucEnable = RTEST( true_false ) ? TRUE : FALSE;
 
 	rant_log( "info", "%s extended messages.", ucEnable ? "Enabling" : "Disabling" );
 	ANT_RxExtMesgsEnable( ucEnable );

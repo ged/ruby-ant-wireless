@@ -89,9 +89,12 @@ class Chatter
 					# Channel might have already closed itself
 				end
 				$stderr.puts "Ok, I think I closed it (%p) %p." % [ Ant::Channel.registry, self.channel ]
+			when /^A\b/
+				$stderr.puts "Sending acked data."
+				self.channel.send_acknowledged_data( "some data" )
 			else
 				$stderr.puts "Sending burst data."
-				self.channel.send_burst_transfer( data.strip )
+				self.channel.send_burst_transfer( data.strip ) if data
 			end
 
 			$stderr.puts "Channel is not closed." unless self.channel.closed?
@@ -102,7 +105,8 @@ class Chatter
 
 
 	def open_channel( mode )
-		flags = Ant::EXT_PARAM_FREQUENCY_AGILITY
+		flags = 0
+		# flags = Ant::EXT_PARAM_FREQUENCY_AGILITY
 
 		case mode
 		when :master

@@ -1,6 +1,7 @@
 # -*- ruby -*-
 # frozen_string_literal: true
 
+require 'securerandom'
 require 'loggability'
 
 require 'ant/channel' unless defined?( Ant::Channel )
@@ -67,7 +68,7 @@ module Ant::Channel::EventCallbacks
 			channel_num,
 			event_id,
 			handler_method,
-			data.bytes[ 0..3 ].map {|b| "%#02x" % b }.join( ' ' )
+			hexify( data[ 0..3 ] )
 		]
 	end
 
@@ -75,6 +76,10 @@ module Ant::Channel::EventCallbacks
 	### Handle an TX event.
 	def on_event_tx( channel_num, data )
 		self.log.info "Broadcast message on channel %d was transmitted." % [ channel_num ]
+
+		data = SecureRandom.bytes( 8 )
+		self.log.debug "Sending our own broadcast data: %p." % [ data ]
+		self.send_broadcast_data( data )
 	end
 
 
@@ -138,9 +143,22 @@ module Ant::Channel::EventCallbacks
 	# def on_event_rx_flag_burst_packet( channel_num, data )
 	#
 	# end
-	# def on_event_rx_flag_broadcast( channel_num, data )
-	#
-	# end
+
+
+	def on_event_rx_flag_broadcast( channel_num, data )
+		flags = data.bytes[ 9 ]
+		if flags & Ant::ANT_EXT_MESG_BITFIELD_DEVICE_ID
+			usDeviceNumber     = data.bytes[10] | (data.bytes[11] << 8)
+			ucDeviceType       = data.bytes[12]
+			ucTransmissionType = data.bytes[13]
+			self.log.info "Got a broadcast on Chan ID(%d/%d/%d)" %
+				[usDeviceNumber, ucDeviceType, ucTransmissionType]
+		end
+
+		self.on_event_rx_broadcast( channel_num, data )
+	end
+
+
 	# def on_event_rx_acknowledged( channel_num, data )
 	#
 	# end
@@ -151,9 +169,12 @@ module Ant::Channel::EventCallbacks
 		self.log.info "Burst (0x%02x): Rx: %d [%p]" % [ channel, sequence_num, data[1..9] ]
 	end
 
+
 	def on_event_rx_broadcast( channel_num, data )
-		self.log.info "Broadcast: Rx: %d" % [ data.bytes[0] ]
+		self.log.info "Broadcast: Rx: %s" % [ hexify(data[1..9]) ]
 	end
+
+
 	# def on_event_rx_ext_acknowledged( channel_num, data )
 	#
 	# end
@@ -163,5 +184,13 @@ module Ant::Channel::EventCallbacks
 	# def on_event_rx_ext_broadcast( channel_num, data )
 	#
 	# end
+
+
+	### Return the given +data+ in hexdump format.
+	def hexify( data )
+		return data.bytes.map do |b|
+			"0x%02x" % [ b ]
+		end.join( ' ' )
+	end
 
 end # module Ant::Channel::EventCallbacks
