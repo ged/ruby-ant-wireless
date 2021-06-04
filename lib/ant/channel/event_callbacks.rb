@@ -142,9 +142,19 @@ module Ant::Channel::EventCallbacks
 	# def on_event_rx_flag_acknowledged( channel_num, data )
 	#
 	# end
-	# def on_event_rx_flag_burst_packet( channel_num, data )
-	#
-	# end
+
+	def on_event_rx_flag_burst_packet( channel_num, data )
+		flags = data.bytes[ 9 ]
+		if flags & Ant::ANT_EXT_MESG_BITFIELD_DEVICE_ID
+			usDeviceNumber     = data.bytes[10] | (data.bytes[11] << 8)
+			ucDeviceType       = data.bytes[12]
+			ucTransmissionType = data.bytes[13]
+			self.log.info "Got a burst on Chan ID(%d/%d/%d)" %
+				[usDeviceNumber, ucDeviceType, ucTransmissionType]
+		end
+
+		self.on_event_rx_burst_packet( channel_num, data )
+	end
 
 
 	def on_event_rx_flag_broadcast( channel_num, data )
@@ -164,6 +174,7 @@ module Ant::Channel::EventCallbacks
 	# def on_event_rx_acknowledged( channel_num, data )
 	#
 	# end
+
 	def on_event_rx_burst_packet( channel_num, data )
 		channel = (data.bytes[0] & CHANNEL_NUMBER_MASK) >> 5
 		sequence_num = data.bytes[0] & SEQUENCE_NUMBER_MASK
