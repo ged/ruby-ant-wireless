@@ -284,6 +284,8 @@ rant_channel_call_event_callback( VALUE callPtr )
 		rval = rb_funcallv_public( rb_callback, rb_intern("call"), 3, args );
 	}
 
+	MEMZERO( ptr->buffer, unsigned char, MESG_MAX_SIZE );
+
 	return rval;
 }
 
@@ -431,9 +433,9 @@ init_ant_channel()
 
 	rb_define_method( rant_cAntChannel, "set_channel_id", rant_channel_set_channel_id, -1 );
 	// rb_define_method( rant_cAntChannel, "set_channel_period",
-	// 	rant_channel_set_channel_period, -1 );
+	// rant_channel_set_channel_period, -1 );
 	// rb_define_method( rant_cAntChannel, "set_channel_search_timeout",
-	// 	rant_channel_set_channel_search_timeout, -1 );
+	// rant_channel_set_channel_search_timeout, -1 );
 	rb_define_method( rant_cAntChannel, "set_channel_rf_freq", rant_channel_set_channel_rf_freq, 1 );
 
 	rb_define_method( rant_cAntChannel, "open", rant_channel_open, -1 );

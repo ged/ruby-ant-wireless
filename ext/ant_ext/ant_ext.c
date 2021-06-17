@@ -232,7 +232,7 @@ rant_s_close( VALUE _module )
  *
  * Reset the system and put it in a known, low-power state. Execution of this
  * command terminates all channels. All information previously configured in the
- * system can no longer be considered valid. 
+ * system can no longer be considered valid.
  *
  */
 static VALUE

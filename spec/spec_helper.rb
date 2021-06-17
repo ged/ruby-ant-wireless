@@ -5,6 +5,7 @@ require 'simplecov' if ENV['COVERAGE']
 
 require 'rspec'
 
+require 'ant'
 require 'loggability/spechelpers'
 
 
@@ -12,6 +13,14 @@ require 'loggability/spechelpers'
 RSpec.configure do |config|
 	config.mock_with( :rspec ) do |mock|
 		mock.syntax = :expect
+	end
+
+	begin
+		Ant.close
+		Ant.init
+		Ant.close
+	rescue => err
+		config.filter_run_excluding( :hardware )
 	end
 
 	config.disable_monkey_patching!

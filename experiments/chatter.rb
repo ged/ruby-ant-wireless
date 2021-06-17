@@ -4,6 +4,7 @@ BEGIN {
 	$LOAD_PATH.unshift 'lib', '../lib'
 }
 
+require 'tty-prompt'
 require 'loggability'
 require 'ant'
 
@@ -35,6 +36,7 @@ class Chatter
 
 	def self::run( args )
 		mode = args.shift or abort "Usage: #$0 [MODE]"
+
 		case mode
 		when 'master'
 			return new( :master ).run( args )
@@ -49,12 +51,14 @@ class Chatter
 	def initialize( mode )
 		@mode = mode
 		@channel = nil
+		@prompt = TTY::Prompt.new
 	end
 
 	attr_reader :mode, :channel
 
 
 	def run( args )
+		self.set_signal_handlers
 		Ant.set_response_handlers
 		Ant.init( ANT_DEVICE )
 		self.log.info "Using a %s (%s)" % Ant.device_usb_info( ANT_DEVICE )
@@ -126,6 +130,11 @@ class Chatter
 		Ant.use_extended_messages = true
 
 		return ch
+	end
+
+
+	def set_signal_handlers
+		Signal.trap( :INT ) { }
 	end
 
 end

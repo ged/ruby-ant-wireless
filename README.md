@@ -1,10 +1,10 @@
-# ruby-ant
+# ruby-ant-wireless
 
 home
-: https://gitlab.com/ravngroup/opensource/ruby-ant
+: https://sr.ht/~ged/ruby-ant-wireless/
 
 code
-: https://gitlab.com/ravngroup/opensource/ruby-ant/-/tree/master
+: https://hg.sr.ht/~ged/ruby-ant-wireless
 
 docs
 : https://dev.ravn.com/docs/ruby-ant
@@ -12,14 +12,16 @@ docs
 
 ## Description
 
-A binding for the ANT ultra-low power wireless protocol. ANT can be used to
-send information wirelessly from one device to another device, in a robust and
-flexible manner.
+A binding for the [ANT ultra-low power wireless protocol][ant] via the
+[Garmin USB ANT Stick][antstick]. ANT can be used to send information
+wirelessly from one device to another device, in a robust and flexible
+manner.
 
 
 ## Prerequisites
 
 * Ruby
+* Garmin USB ANT Stick (https://buy.garmin.com/en-US/US/p/10997/pn/010-01058-00)
 
 
 ## Installation
@@ -31,11 +33,12 @@ flexible manner.
 
 You can check out the current source with Git via Gitlab:
 
-    $ git clone git@gitlab.com:ravngroup/opensource/ruby-ant.git
-    $ cd helios
+    $ git clone git@github.com:ged/ruby-ant-wireless.git
+    $ cd ruby-ant-wireless
 
 After checking out the source, run:
 
+    $ gem install -Ng
     $ rake setup
 
 This task will install dependencies, and do any other necessary setup for development.
@@ -44,6 +47,7 @@ This task will install dependencies, and do any other necessary setup for develo
 ## Authors
 
 - Michael Granger <ged@FaerieMUD.org>
+- Mahlon E. Smith <mahlon@martini.nu>
 
 
 ## License
@@ -68,3 +72,8 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+[ant]: https://www.thisisant.com/
+[antstick]: https://buy.garmin.com/en-US/US/p/10997/pn/010-01058-00
+

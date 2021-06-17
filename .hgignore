@@ -2,6 +2,8 @@ coverage/
 docs/
 tmp/
 spec/\.status
+tags$
+Session.vim$
 \.lock$
 \.yml$
 \.bundle$

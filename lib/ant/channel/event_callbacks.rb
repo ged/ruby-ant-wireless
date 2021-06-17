@@ -79,9 +79,9 @@ module Ant::Channel::EventCallbacks
 	def on_event_tx( channel_num, data )
 		# self.log.info "Broadcast message on channel %d was transmitted." % [ channel_num ]
 
-		data = SecureRandom.bytes( 8 )
+		# data = SecureRandom.bytes( 8 )
 		# self.log.debug "Sending our own broadcast data: %p." % [ data ]
-		self.send_broadcast_data( data )
+		# self.send_broadcast_data( data )
 	end
 
 
@@ -179,12 +179,12 @@ module Ant::Channel::EventCallbacks
 		channel = (data.bytes[0] & CHANNEL_NUMBER_MASK) >> 5
 		sequence_num = data.bytes[0] & SEQUENCE_NUMBER_MASK
 
-		self.log.info "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, hexdump(data[1..9]) ]
+		self.log.info "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, hexdump(data[1..8]) ]
 	end
 
 
 	def on_event_rx_broadcast( channel_num, data )
-		self.log.info "Broadcast: Rx:\n%s" % [ hexdump(data[1..9]) ]
+		self.log.info "Broadcast: Rx:\n%s" % [ hexdump(data[1..8]) ]
 	end
 
 

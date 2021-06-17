@@ -16,9 +16,9 @@ class Ant::Channel
 	DEFAULT_EXTENDED_OPTIONS = 0x0
 
 
-	# 
+	#
 	# Autoloads
-	# 
+	#
 
 	autoload :EventCallbacks, 'ant/channel/event_callbacks'
 

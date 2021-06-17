@@ -212,9 +212,9 @@ module Ant::ResponseCallbacks
 	end
 
 
-	### 
+	### Handle channel_mesg_period response events.
 	def on_channel_mesg_period( channel_num, data )
-		self.log_response_event( channel_num, data, "channel_mesg_period", "Channel assigned." )
+		self.log_response_event( channel_num, data, "channel_mesg_period", "Channel period assigned." )
 	end
 
 
