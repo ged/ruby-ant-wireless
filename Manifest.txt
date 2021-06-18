@@ -4,7 +4,6 @@ README.md
 lib/ant.rb
 lib/ant/channel.rb
 lib/ant/channel/event_callbacks.rb
-lib/ant/event.rb
 lib/ant/message.rb
 lib/ant/mixins.rb
 lib/ant/response_callbacks.rb
@@ -17,7 +16,6 @@ ext/ant_ext/build_version.h
 ext/ant_ext/callbacks.c
 ext/ant_ext/channel.c
 ext/ant_ext/defines.h
-ext/ant_ext/event.c
 ext/ant_ext/message.c
 ext/ant_ext/types.h
 ext/ant_ext/version.h

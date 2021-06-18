@@ -143,6 +143,7 @@ module Ant::Channel::EventCallbacks
 	#
 	# end
 
+	### Handle an RX_FLAG_BURST_PACKET event.
 	def on_event_rx_flag_burst_packet( channel_num, data )
 		flags = data.bytes[ 9 ]
 		if flags & Ant::ANT_EXT_MESG_BITFIELD_DEVICE_ID
@@ -157,6 +158,7 @@ module Ant::Channel::EventCallbacks
 	end
 
 
+	### Handle an RX_FLAG_BROADCAST event.
 	def on_event_rx_flag_broadcast( channel_num, data )
 		flags = data.bytes[ 9 ]
 		if flags & Ant::ANT_EXT_MESG_BITFIELD_DEVICE_ID
@@ -175,6 +177,8 @@ module Ant::Channel::EventCallbacks
 	#
 	# end
 
+
+	### Handle an RX_BURST_PACKET event.
 	def on_event_rx_burst_packet( channel_num, data )
 		channel = (data.bytes[0] & CHANNEL_NUMBER_MASK) >> 5
 		sequence_num = data.bytes[0] & SEQUENCE_NUMBER_MASK
@@ -183,6 +187,7 @@ module Ant::Channel::EventCallbacks
 	end
 
 
+	### Handle an RX_BROADCAST event.
 	def on_event_rx_broadcast( channel_num, data )
 		self.log.info "Broadcast: Rx:\n%s" % [ hexdump(data[1..8]) ]
 	end

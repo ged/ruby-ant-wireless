@@ -8,7 +8,9 @@ module Ant
 
 	module DataUtilities
 
+		# The range of ASCII codes to show literally in a hexdump
 		VISIBLES = 32..126
+
 
 		###############
 		module_function
@@ -22,7 +24,7 @@ module Ant
 					"0x%02x" % [ b ]
 				end.join( ' ' )
 				stripped_bytes = chunk.map {|c| VISIBLES.include?(c) ? c.chr : '.'}.join
-				"%04d: %*s | %*s |" % [ line, -hex_width, bytes, -line_size, stripped_bytes ]
+				"%04x: %*s | %*s |" % [ line, -hex_width, bytes, -line_size, stripped_bytes ]
 			end.join( "\n" )
 		end
 

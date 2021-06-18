@@ -134,6 +134,13 @@ rant_channel_init( VALUE self, VALUE channel_number, VALUE channel_type, VALUE n
 }
 
 
+/*
+ * call-seq:
+ *    channel.channel_number   -> integer
+ *
+ * Return the channel number assigned to the Channel.
+ *
+ */
 static VALUE
 rant_channel_channel_number( VALUE self )
 {
@@ -143,6 +150,15 @@ rant_channel_channel_number( VALUE self )
 }
 
 
+/*
+ * call-seq:
+ *    channel.set_channel_id( device_number, device_type, transmission_type, timeout=0 )
+ *
+ * Set the channel ID using the combination of the +device_number+,
+ * +device_type+, and +transmission_type+. If the assignment hasn't been set in
+ * +timeout+ seconds, aborts and returns +nil+.
+ *
+ */
 static VALUE
 rant_channel_set_channel_id( int argc, VALUE *argv, VALUE self )
 {
@@ -179,6 +195,12 @@ rant_channel_set_channel_id( int argc, VALUE *argv, VALUE self )
 // ANT_SetChannelRFFreq_RTO(UCHAR ucANTChannel_, UCHAR ucRFFreq_, ULONG ulResponseTime_);
 
 
+/*
+ * call-seq:
+ *    channel.open( tineout=0 )
+ *
+ * Open the channel. If it hasn't completed within +timeout+ seconds, raises a RuntimeError.
+ */
 static VALUE
 rant_channel_open( int argc, VALUE *argv, VALUE self )
 {
@@ -194,7 +216,6 @@ rant_channel_open( int argc, VALUE *argv, VALUE self )
 	if ( !ANT_OpenChannel_RTO( ptr->channel_num, ulResponseTime ) ) {
 		rb_raise( rb_eRuntimeError, "Failed to open the channel." );
 	}
-
 
 	return Qtrue;
 }
@@ -309,6 +330,13 @@ rant_channel_on_event_callback( unsigned char ucANTChannel, unsigned char ucEven
 }
 
 
+/*
+ * call-seq:
+ *    channel.on_event {|channel_num, event_id, data| ... }
+ *
+ * Set up a callback for events on the receiving channel.
+ *
+ */
 static VALUE
 rant_channel_on_event( int argc, VALUE *argv, VALUE self )
 {
@@ -321,7 +349,7 @@ rant_channel_on_event( int argc, VALUE *argv, VALUE self )
 		rb_raise( rb_eLocalJumpError, "block required, but not given" );
 	}
 
-	rant_log( "debug", "Channel event callback is: %s", RSTRING_PTR(rb_inspect(callback)) );
+	rant_log_obj( self, "debug", "Channel event callback is: %s", RSTRING_PTR(rb_inspect(callback)) );
 	ptr->callback = callback;
 
 	ANT_AssignChannelEventFunction( ptr->channel_num, rant_channel_on_event_callback, ptr->buffer );
@@ -330,6 +358,13 @@ rant_channel_on_event( int argc, VALUE *argv, VALUE self )
 }
 
 
+/*
+ * call-seq:
+ *    channel.send_burst_transfer( data )
+ *
+ * Send the given +data+ as one or more burst packets.
+ *
+ */
 static VALUE
 rant_channel_send_burst_transfer( VALUE self, VALUE data )
 {
@@ -363,11 +398,25 @@ rant_channel_send_burst_transfer( VALUE self, VALUE data )
 }
 
 
+/*
+ * call-seq:
+ *    channel.send_acknowledged_data( data )
+ *
+ * Send the given +data+ as an acknowledged transmission. The +data+ cannot be longer
+ * than 8 bytes in length.
+ *
+ */
 static VALUE
 rant_channel_send_acknowledged_data( VALUE self, VALUE data )
 {
 	rant_channel_t *ptr = rant_get_channel( self );
-	UCHAR aucTempBuffer[] = {1,2,3,4,5,6,7,8};
+	UCHAR aucTempBuffer[] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+	StringValue( data );
+	if ( RSTRING_LEN(data) > 8 ) {
+		rb_raise( rb_eArgError, "Data can't be longer than 8 bytes." );
+	}
+	strncpy( (char *)aucTempBuffer, StringValuePtr(data), RSTRING_LEN(data) );
 
 	ANT_SendAcknowledgedData( ptr->channel_num, aucTempBuffer );
 
@@ -375,6 +424,14 @@ rant_channel_send_acknowledged_data( VALUE self, VALUE data )
 }
 
 
+/*
+ * call-seq:
+ *    channel.send_broadcast_data( data )
+ *
+ * Send the given +data+ as a broadcast transmission. The +data+ cannot be longer
+ * than 8 bytes in length.
+ *
+ */
 static VALUE
 rant_channel_send_broadcast_data( VALUE self, VALUE data )
 {
@@ -393,6 +450,13 @@ rant_channel_send_broadcast_data( VALUE self, VALUE data )
 }
 
 
+/*
+ * call-seq:
+ *    channel.set_channel_rf_freq( frequency )
+ *
+ * Set the ANT RF +frequency+.
+ *
+ */
 static VALUE
 rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
 {
@@ -417,6 +481,12 @@ init_ant_channel()
 	rant_mAnt = rb_define_module( "Ant" );
 #endif
 
+	/*
+	 * Document-module: Ant::Channel
+	 *
+	 * An assigned ANT channel object.
+	 *
+	 */
 	rant_cAntChannel = rb_define_class_under( rant_mAnt, "Channel", rb_cObject );
 	rb_iv_set( rant_cAntChannel, "@registry", rb_hash_new() );
 

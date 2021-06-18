@@ -123,10 +123,16 @@ rant_s_device_usb_info( VALUE _module, VALUE device_num )
 }
 
 
+/*
+ * call-seq:
+ *    Ant.device_usb_pid   -> integer
+ *
+ * Returns the +pid+ of the USB device.
+ *
+ */
 static VALUE
 rant_s_device_usb_pid( VALUE _module )
 {
-	// EXPORT BOOL ANT_GetDeviceUSBPID(USHORT* pusPID_);
 	unsigned short pid;
 
 	if ( !ANT_GetDeviceUSBPID(&pid) ) {
@@ -137,10 +143,16 @@ rant_s_device_usb_pid( VALUE _module )
 }
 
 
+/*
+ * call-seq:
+ *    Ant.device_usb_vid   -> integer
+ *
+ * Returns the +vid+ of the USB device.
+ *
+ */
 static VALUE
 rant_s_device_usb_vid( VALUE _module )
 {
-	// EXPORT BOOL ANT_GetDeviceUSBVID(USHORT* pusVID_);
 	unsigned short vid;
 
 	if ( !ANT_GetDeviceUSBVID(&vid) ) {
@@ -151,10 +163,16 @@ rant_s_device_usb_vid( VALUE _module )
 }
 
 
+/*
+ * call-seq:
+ *    Ant.device_serial_number   -> integer
+ *
+ * Returns the serial number of the ANT device; not implemented on all devices.
+ *
+ */
 static VALUE
 rant_s_device_serial_number( VALUE _module )
 {
-	// EXPORT ULONG ANT_GetDeviceSerialNumber();
 #ifdef HAVE_ANT_GETDEVICESERIALNUMBER
 	const unsigned long serial = ANT_GetDeviceSerialNumber();
 	return LONG2FIX( serial );
@@ -257,9 +275,9 @@ rant_s_reset( VALUE _module )
 
 /*
  * call-seq:
- *    Ant.set_network_key( 0, "\x0\x0\x0\x0\x0\x0\x0\x0" )
+ *    Ant.set_network_key( network_num, network_key )
  *
- * Configures a network address for use by one of the available network numbers
+ * Configures a network address for use by one of the available network numbers.
  *
  */
 static VALUE
@@ -294,7 +312,6 @@ rant_s_set_network_key( VALUE _module, VALUE network_number, VALUE key )
  * +EXT_PARAM_FAST_CHANNEL_INIT+:: enable fast channel initiation
  * +EXT_PARAM_ASYNC_TRANSMIT+:: enable asynchronous transmission
  *
- *    chan = Ant.assign_channel( 0, Ant::PARAMTER_RX_NOT_TX, 0, EXT_PARAM_FREQUENCY_AGILITY )
  */
 static VALUE
 rant_s_assign_channel( int argc, VALUE *argv, VALUE _module )
@@ -422,11 +439,9 @@ rant_on_response_callback( UCHAR ucChannel, UCHAR ucResponseMesgID )
  *    Ant.on_response {|channel, response_msg_id| ... }
  *
  * Sets the response callback. The callback is called whenever a response
- * message is received from ANT.
+ * message is received from ANT. See #set_response_handlers for a set of default
+ * handlers.
  *
- *    Ant.on_response do |channel, response_msg_id, data|
- *
- *    end
  */
 static VALUE
 rant_s_on_response( int argc, VALUE *argv, VALUE module )
@@ -449,6 +464,13 @@ rant_s_on_response( int argc, VALUE *argv, VALUE module )
 
 
 
+/*
+ * call-seq:
+ *    Ant.log_directory = "path/to/log/dir"
+ *
+ * Write debugging logs to the specified directory, which should already exist.
+ *
+ */
 static VALUE
 rant_s_log_directory_eq( VALUE _module, VALUE directory )
 {
@@ -465,6 +487,15 @@ rant_s_log_directory_eq( VALUE _module, VALUE directory )
 void
 Init_ant_ext()
 {
+	/*
+	 * Document-module: Ant
+	 *
+	 * This is an extension for using the ANT ultra-low power wireless protocol via 
+	 * the Garmin USB ANT Stick. ANT can be used to send information
+	 * wirelessly from one device to another device, in a robust and flexible
+	 * manner.
+	 *
+	 */
 	rant_mAnt = rb_define_module( "Ant" );
 
 	response_callback_ivar = rb_intern( "@response_callback" );
@@ -753,7 +784,6 @@ Init_ant_ext()
 #undef EXPOSE_CONST
 
 	init_ant_channel();
-	init_ant_event();
 	init_ant_message();
 
 	rant_start_callback_thread();

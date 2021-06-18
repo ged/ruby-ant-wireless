@@ -39,6 +39,8 @@ class Ant::Channel
 	public
 	######
 
+	alias_method :set_channel_rf_frequency, :set_channel_rf_freq
+
 
 	### Set up the given +mod+ as the handler module for channel events.
 	def set_event_handlers( mod=Ant::Channel::EventCallbacks )

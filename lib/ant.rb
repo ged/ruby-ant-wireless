@@ -42,7 +42,8 @@ module Ant
 	autoload :DataUtilities, 'ant/mixins'
 
 
-	### Set up the given +mod+ as the handler module for response callbacks.
+	### Set up the given +mod+ as the handler module for response callbacks. You can
+	### create your own handler module and extend with the default Ant::ResponseCallbacks.
 	def self::set_response_handlers( mod=Ant::ResponseCallbacks )
 		self.extend( mod )
 		self.on_response( &self.method(:handle_response_callback) )
@@ -115,6 +116,7 @@ module Ant
 				[ data.bytesize ]
 		end
 
+		self.log.debug "Validated network key: %p" % [ data ]
 		return data
 	end
 

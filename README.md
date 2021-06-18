@@ -1,4 +1,4 @@
-# ruby-ant-wireless
+# ant-wireless
 
 home
 : https://sr.ht/~ged/ruby-ant-wireless/
@@ -7,7 +7,7 @@ code
 : https://hg.sr.ht/~ged/ruby-ant-wireless
 
 docs
-: https://dev.ravn.com/docs/ruby-ant
+: https://deveiate.org/code/ant-wireless
 
 
 ## Description
@@ -26,15 +26,15 @@ manner.
 
 ## Installation
 
-    $ gem install ruby-ant
+    $ gem install ant-wireless
 
 
 ## Development
 
 You can check out the current source with Git via Gitlab:
 
-    $ git clone git@github.com:ged/ruby-ant-wireless.git
-    $ cd ruby-ant-wireless
+    $ hg clone https://hg.sr.ht/~ged/ruby-ant-wireless ant-wireless
+    $ cd ant-wireless
 
 After checking out the source, run:
 

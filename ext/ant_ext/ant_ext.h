@@ -75,7 +75,6 @@ void rant_log( const char *, const char *, va_dcl );
 extern VALUE rant_mAnt;
 
 extern VALUE rant_cAntChannel;
-extern VALUE rant_cAntEvent;
 extern VALUE rant_cAntMessage;
 
 
@@ -92,7 +91,6 @@ extern VALUE rant_cAntMessage;
 extern void Init_ant_ext _(( void ));
 
 extern void init_ant_channel _(( void ));
-extern void init_ant_event _(( void ));
 extern void init_ant_message _(( void ));
 
 extern void rant_start_callback_thread _(( void ));
