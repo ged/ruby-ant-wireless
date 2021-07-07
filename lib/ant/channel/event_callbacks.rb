@@ -78,10 +78,9 @@ module Ant::Channel::EventCallbacks
 	### Handle an TX event.
 	def on_event_tx( channel_num, data )
 		# self.log.info "Broadcast message on channel %d was transmitted." % [ channel_num ]
-
-		# data = SecureRandom.bytes( 8 )
-		# self.log.debug "Sending our own broadcast data: %p." % [ data ]
-		# self.send_broadcast_data( data )
+		data = SecureRandom.bytes( 8 )
+		self.log.info "Sending our own broadcast data: \n%s" % [ hexdump(data) ]
+		self.send_broadcast_data( data )
 	end
 
 
@@ -139,11 +138,20 @@ module Ant::Channel::EventCallbacks
 	end
 
 
-	# def on_event_rx_flag_acknowledged( channel_num, data )
-	#
-	# end
+	def on_event_rx_flag_acknowledged( channel_num, data )
+		flags = data.bytes[ 9 ]
+		if flags & Ant::ANT_EXT_MESG_BITFIELD_DEVICE_ID
+			usDeviceNumber     = data.bytes[10] | (data.bytes[11] << 8)
+			ucDeviceType       = data.bytes[12]
+			ucTransmissionType = data.bytes[13]
+			self.log.info "Got an acknowledge on Chan ID(%d/%d/%d)" %
+				[usDeviceNumber, ucDeviceType, ucTransmissionType]
+		end
 
-	### Handle an RX_FLAG_BURST_PACKET event.
+		self.on_event_rx_acknowledged( channel_num, data )
+	end
+
+
 	def on_event_rx_flag_burst_packet( channel_num, data )
 		flags = data.bytes[ 9 ]
 		if flags & Ant::ANT_EXT_MESG_BITFIELD_DEVICE_ID
@@ -158,7 +166,6 @@ module Ant::Channel::EventCallbacks
 	end
 
 
-	### Handle an RX_FLAG_BROADCAST event.
 	def on_event_rx_flag_broadcast( channel_num, data )
 		flags = data.bytes[ 9 ]
 		if flags & Ant::ANT_EXT_MESG_BITFIELD_DEVICE_ID
@@ -173,23 +180,21 @@ module Ant::Channel::EventCallbacks
 	end
 
 
-	# def on_event_rx_acknowledged( channel_num, data )
-	#
-	# end
+	def on_event_rx_acknowledged( channel_num, data )
+		self.log.info "Acknowledged: Rx:\n%s" % [ hexdump(data[1..9]) ]
+	end
 
 
-	### Handle an RX_BURST_PACKET event.
 	def on_event_rx_burst_packet( channel_num, data )
 		channel = (data.bytes[0] & CHANNEL_NUMBER_MASK) >> 5
 		sequence_num = data.bytes[0] & SEQUENCE_NUMBER_MASK
 
-		self.log.info "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, hexdump(data[1..8]) ]
+		self.log.info "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, hexdump(data[1..9]) ]
 	end
 
 
-	### Handle an RX_BROADCAST event.
 	def on_event_rx_broadcast( channel_num, data )
-		self.log.info "Broadcast: Rx:\n%s" % [ hexdump(data[1..8]) ]
+		self.log.info "Broadcast: Rx:\n%s" % [ hexdump(data[1..9]) ]
 	end
 
 
