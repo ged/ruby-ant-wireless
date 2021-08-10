@@ -95,7 +95,7 @@ module Ant::ResponseCallbacks
 
 
 	### Default callback hook -- handles response callbacks.
-	def handle_response_callback( channel_num, message_id, data )
+	def self::handle_response_callback( channel_num, message_id, data )
 		handler_method = HANDLER_METHODS[ message_id ] or
 			raise "Unhandled response message ID %p" % [ message_id ]
 
@@ -118,9 +118,9 @@ module Ant::ResponseCallbacks
 	end
 
 
-	#
-	# Handlers
-	#
+	###############
+	module_function
+	###############
 
 	### Handle version number response messages.
 	def on_version( channel_num, data )

@@ -34,6 +34,7 @@ class Chatter
 	NETWORK_PUBLIC_KEY = "\x00" * 8
 
 
+	### Create and run a chatter.
 	def self::run( args )
 		mode = args.shift or abort "Usage: #$0 [MODE]"
 
@@ -48,18 +49,34 @@ class Chatter
 	end
 
 
+	### Create a Chatter in the given +mode+, which should be either +:master+ or
+	### +:slave+.
 	def initialize( mode )
 		@mode = mode
 		@channel = nil
 		@prompt = TTY::Prompt.new
 	end
 
-	attr_reader :mode, :channel
+	######
+	public
+	######
+
+	##
+	# The mode the chatter is running in as a Symbol; either :master or :slave.
+	attr_reader :mode
+
+	##
+	# The Ant::Channel object the chat is using.
+	attr_reader :channel
+
+	##
+	# The TTY::Prompt object used for input from and output to the terminal.
 
 
+	### Run the chatter
 	def run( args )
 		self.set_signal_handlers
-		Ant.set_response_handlers
+		Ant.set_response_handler
 		Ant.init( ANT_DEVICE )
 		self.log.info "Using a %s (%s)" % Ant.device_usb_info( ANT_DEVICE )
 		Ant.reset
@@ -77,6 +94,7 @@ class Chatter
 	end
 
 
+	### Prompt the user for input and handle it.
 	def start_read_loop
 		until self.channel.closed?
 			$stderr.print "> "
@@ -101,13 +119,14 @@ class Chatter
 				self.channel.send_burst_transfer( data.strip ) if data
 			end
 
-			$stderr.puts "Channel is not closed." unless self.channel.closed?
+			$stderr.puts "Channel is still open." unless self.channel.closed?
 		end
 
 		$stderr.puts "Stopping read loop."
 	end
 
 
+	### Open an Ant::Channel in the given +mode+, which should be either :master or :slave.
 	def open_channel( mode )
 		flags = 0
 		# flags = Ant::EXT_PARAM_FREQUENCY_AGILITY
@@ -122,6 +141,8 @@ class Chatter
 			channel_type = Ant::PARAMETER_RX_NOT_TX
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
 			ch.set_channel_id( 0, 0, 0 )
+		else
+			raise "Unknown channel mode %p" % [ mode ]
 		end
 
 		ch.set_event_handlers
@@ -133,8 +154,9 @@ class Chatter
 	end
 
 
+	### Set signal handlers to do graceful teardown.
 	def set_signal_handlers
-		Signal.trap( :INT ) { }
+		# Signal.trap( :INT ) { }
 	end
 
 end

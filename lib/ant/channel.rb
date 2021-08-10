@@ -31,6 +31,7 @@ class Ant::Channel
 
 
 	##
+	# :singleton-method: registry
 	# Channel registry, keyed by channel number.
 	singleton_class.attr_reader( :registry )
 
@@ -43,9 +44,8 @@ class Ant::Channel
 
 
 	### Set up the given +mod+ as the handler module for channel events.
-	def set_event_handlers( mod=Ant::Channel::EventCallbacks )
-		self.extend( mod )
-		self.on_event( &self.method(:handle_event_callback) )
+	def set_event_handlers( object=Ant::Channel::EventCallbacks )
+		self.on_event( &object.method(:handle_event_callback) )
 	end
 
 

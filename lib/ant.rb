@@ -14,10 +14,6 @@ module Ant
 	# Package version
 	VERSION = '0.0.1'
 
-	# Version control revision
-	REVISION = %q$Revision$
-
-
 	# A Range for matching valid ANT device numbers
 	VALID_DEVICE_NUMBERS = ( 0...65535 ).freeze
 
@@ -42,11 +38,10 @@ module Ant
 	autoload :DataUtilities, 'ant/mixins'
 
 
-	### Set up the given +mod+ as the handler module for response callbacks. You can
-	### create your own handler module and extend with the default Ant::ResponseCallbacks.
-	def self::set_response_handlers( mod=Ant::ResponseCallbacks )
-		self.extend( mod )
-		self.on_response( &self.method(:handle_response_callback) )
+	### Set up the given +object+ as the handler for response callbacks. It must
+	### respond to :handle_response_callback.
+	def self::set_response_handler( object=Ant::ResponseCallbacks )
+		self.on_response( &object.method(:handle_response_callback) )
 	end
 
 

@@ -17,10 +17,6 @@ module Ant::Channel::EventCallbacks
 	include Ant::DataUtilities
 
 
-	# Loggability API -- send logs to the Ant logger
-	log_to :ant
-
-
 	# Mapping of response message IDs to handler methods
 	HANDLER_METHODS = {
 		Ant::EVENT_CHANNEL_CLOSED        => :on_event_channel_closed,
@@ -51,17 +47,8 @@ module Ant::Channel::EventCallbacks
 	SEQUENCE_NUMBER_MASK = 0xE0
 
 
-	### Default callback hook -- handles event callbacks.
-	def handle_event_callback( channel_num, event_id, data )
-		handler_method = HANDLER_METHODS[ event_id ] or
-			raise "Unhandled channel event %p" % [ event_id ]
-
-		if self.respond_to?( handler_method )
-			self.public_send( handler_method, channel_num, data )
-		else
-			Ant::Channel::EventCallbacks.log_event_callback( channel_num, handler_method, event_id, data )
-		end
-	end
+	# Loggability API -- send logs to the Ant logger
+	log_to :ant
 
 
 	### Log the channel event by default.
@@ -72,6 +59,23 @@ module Ant::Channel::EventCallbacks
 			handler_method,
 			Ant::DataUtilities.hexdump( data[ 0..3 ] )
 		]
+	end
+
+
+	###############
+	module_function
+	###############
+
+	### Default callback hook -- handles event callbacks.
+	def handle_event_callback( channel_num, event_id, data )
+		handler_method = HANDLER_METHODS[ event_id ] or
+			raise "Unhandled channel event %p" % [ event_id ]
+
+		if self.respond_to?( handler_method )
+			self.public_send( handler_method, channel_num, data )
+		else
+			Ant::Channel::EventCallbacks.log_event_callback( channel_num, handler_method, event_id, data )
+		end
 	end
 
 

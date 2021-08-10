@@ -1,6 +1,7 @@
 History.md
 LICENSE.txt
 README.md
+lib/ant-wireless.rb
 lib/ant.rb
 lib/ant/channel.rb
 lib/ant/channel/event_callbacks.rb

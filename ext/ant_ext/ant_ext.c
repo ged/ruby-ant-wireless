@@ -490,7 +490,7 @@ Init_ant_ext()
 	/*
 	 * Document-module: Ant
 	 *
-	 * This is an extension for using the ANT ultra-low power wireless protocol via 
+	 * This is an extension for using the ANT ultra-low power wireless protocol via
 	 * the Garmin USB ANT Stick. ANT can be used to send information
 	 * wirelessly from one device to another device, in a robust and flexible
 	 * manner.
