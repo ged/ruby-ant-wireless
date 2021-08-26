@@ -521,7 +521,6 @@ Init_ant_ext()
 	rb_define_singleton_method( rant_mAnt, "on_response", rant_s_on_response, -1 );
 	// EXPORT void ANT_UnassignAllResponseFunctions(); //Unassigns all response functions
 
-
 	rb_define_singleton_method( rant_mAnt, "log_directory=", rant_s_log_directory_eq, 1 );
 
 

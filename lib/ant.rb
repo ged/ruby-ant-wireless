@@ -31,9 +31,6 @@ module Ant
 	log_as :ant
 
 
-	Loggability.level = :debug
-
-
 	autoload :ResponseCallbacks, 'ant/response_callbacks'
 	autoload :DataUtilities, 'ant/mixins'
 
