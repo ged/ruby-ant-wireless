@@ -20,8 +20,13 @@ manner.
 
 ## Prerequisites
 
-* Ruby
-* Garmin USB ANT Stick (https://buy.garmin.com/en-US/US/p/10997/pn/010-01058-00)
+* Ruby 2.7.x or later
+* [Garmin USB ANT Stick][antstick]
+* [ANT SDK][antsdk]
+
+Note that we had trouble compiling the latest ANT SDK on some platforms, so we are currently using a modified version of it with a reworked build system for MacOS and FreeBSD. That is available under the same licensing terms at:
+
+https://github.com/RavnGroup/Garmin-ANT-SDK
 
 
 ## Installation
@@ -76,4 +81,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [ant]: https://www.thisisant.com/
 [antstick]: https://buy.garmin.com/en-US/US/p/10997/pn/010-01058-00
-
+[antsdk]: https://www.thisisant.com/developer/resources/downloads/#software_tab
