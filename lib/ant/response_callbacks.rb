@@ -96,7 +96,7 @@ module Ant::ResponseCallbacks
 
 	### Default callback hook -- handles response callbacks.
 	def self::handle_response_callback( channel_num, message_id, data )
-		handler_method = HANDLER_METHODS[ message_id ] or
+		handler_method = Ant::ResponseCallbacks::HANDLER_METHODS[ message_id ] or
 			raise "Unhandled response message ID %p" % [ message_id ]
 
 		if self.respond_to?( handler_method )

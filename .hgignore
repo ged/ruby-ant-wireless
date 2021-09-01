@@ -1,6 +1,7 @@
 coverage/
 docs/
 tmp/
+pkg/
 spec/\.status
 tags$
 Session.vim$

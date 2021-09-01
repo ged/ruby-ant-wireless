@@ -49,15 +49,31 @@ class Ant::Channel
 	end
 
 
+	### Return the ANT channel ID if one has been assigned.
+	def channel_id
+		device_number     = self.device_number or return nil
+		device_type       = self.device_type & 0x7f
+		pairing_bit       = self.device_type & 0x80
+		transmission_type = self.transmission_type
+
+		return "%d/%d/%d%s" % [
+			device_number,
+			device_type,
+			transmission_type,
+			pairing_bit.nonzero? ? '+' : '',
+		]
+	end
+
+
 	### Return a human-readable version of the object suitable for debugging.
 	def inspect
-		return "#<%p:%#x {%d} %#02x on network %d: %d%s>" % [
+		return "#<%p:%#x {%s} #%d %#02x on network %d%s>" % [
 			self.class,
 			self.object_id,
+			self.channel_id || '-',
 			self.channel_number,
 			self.channel_type,
 			self.network_number,
-			self.extended_options,
 			self.closed? ? " (closed)" : "",
 		]
 	end

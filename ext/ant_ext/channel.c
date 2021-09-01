@@ -128,6 +128,10 @@ rant_channel_init( VALUE self, VALUE channel_number, VALUE channel_type, VALUE n
 	rb_iv_set( self, "@network_number", network_number );
 	rb_iv_set( self, "@extended_options", extended_options );
 
+	rb_iv_set( self, "@device_type", Qnil );
+	rb_iv_set( self, "@device_number", Qnil );
+	rb_iv_set( self, "@transmission_type", Qnil );
+
 	rb_hash_aset( registry, channel_number, self );
 
 	return self;
@@ -185,6 +189,10 @@ rant_channel_set_channel_id( int argc, VALUE *argv, VALUE self )
 	if ( !result ) {
 		rb_raise( rb_eRuntimeError, "Failed to set the channel id." );
 	}
+
+	rb_iv_set( self, "@device_type", device_type );
+	rb_iv_set( self, "@device_number", device_number );
+	rb_iv_set( self, "@transmission_type", transmission_type );
 
 	return Qtrue;
 }
@@ -500,6 +508,10 @@ init_ant_channel()
 	rb_attr( rant_cAntChannel, rb_intern("channel_type"), 1, 0, 0 );
 	rb_attr( rant_cAntChannel, rb_intern("network_number"), 1, 0, 0 );
 	rb_attr( rant_cAntChannel, rb_intern("extended_options"), 1, 0, 0 );
+
+	rb_attr( rant_cAntChannel, rb_intern("device_number"), 1, 0, 0 );
+	rb_attr( rant_cAntChannel, rb_intern("device_type"), 1, 0, 0 );
+	rb_attr( rant_cAntChannel, rb_intern("transmission_type"), 1, 0, 0 );
 
 	rb_define_method( rant_cAntChannel, "set_channel_id", rant_channel_set_channel_id, -1 );
 	// rb_define_method( rant_cAntChannel, "set_channel_period",

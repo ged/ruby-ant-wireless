@@ -1,16 +1,16 @@
 # -*- encoding: utf-8 -*-
-# stub: ant-wireless 0.1.0.pre.20210810141303 ruby lib
+# stub: ant-wireless 0.2.0.pre.20210901162227 ruby lib
 # stub: ext/ant_ext/extconf.rb
 
 Gem::Specification.new do |s|
   s.name = "ant-wireless".freeze
-  s.version = "0.1.0.pre.20210810141303"
+  s.version = "0.2.0.pre.20210901162227"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
   s.metadata = { "bug_tracker_uri" => "https://todo.sr.ht/~ged/ruby-ant-wireless", "changelog_uri" => "https://deveiate.org/code/ant-wireless/History_md.html", "documentation_uri" => "https://deveiate.org/code/ant-wireless", "homepage_uri" => "https://sr.ht/~ged/ruby-ant-wireless/", "source_uri" => "https://hg.sr.ht/~ged/ruby-ant-wireless" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Michael Granger".freeze, "Mahlon E. Smith".freeze]
-  s.date = "2021-08-10"
+  s.date = "2021-09-01"
   s.description = "A binding for the ANT ultra-low power wireless protocol via the Garmin USB ANT Stick. ANT can be used to send information wirelessly from one device to another device, in a robust and flexible manner.".freeze
   s.email = ["ged@FaerieMUD.org".freeze, "mahlon@martini.nu".freeze]
   s.extensions = ["ext/ant_ext/extconf.rb".freeze]
@@ -27,8 +27,10 @@ Gem::Specification.new do |s|
   if s.respond_to? :add_runtime_dependency then
     s.add_runtime_dependency(%q<rake-compiler>.freeze, ["~> 1.1"])
     s.add_development_dependency(%q<rake-deveiate>.freeze, ["~> 0.10"])
+    s.add_development_dependency(%q<rdoc-generator-fivefish>.freeze, ["~> 0.4"])
   else
     s.add_dependency(%q<rake-compiler>.freeze, ["~> 1.1"])
     s.add_dependency(%q<rake-deveiate>.freeze, ["~> 0.10"])
+    s.add_dependency(%q<rdoc-generator-fivefish>.freeze, ["~> 0.4"])
   end
 end

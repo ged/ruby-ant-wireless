@@ -13,8 +13,8 @@ require 'ant/mixins'
 # Refs:
 # * 9.5.6.1 Channel Response / Event (0x40) [ANT Message Protocol and Usage, Rev 5.1]
 module Ant::Channel::EventCallbacks
-	extend Loggability
-	include Ant::DataUtilities
+	extend Loggability,
+		Ant::DataUtilities
 
 
 	# Mapping of response message IDs to handler methods
@@ -68,7 +68,7 @@ module Ant::Channel::EventCallbacks
 
 	### Default callback hook -- handles event callbacks.
 	def handle_event_callback( channel_num, event_id, data )
-		handler_method = HANDLER_METHODS[ event_id ] or
+		handler_method = Ant::Channel::EventCallbacks::HANDLER_METHODS[ event_id ] or
 			raise "Unhandled channel event %p" % [ event_id ]
 
 		if self.respond_to?( handler_method )
@@ -81,10 +81,7 @@ module Ant::Channel::EventCallbacks
 
 	### Handle an TX event.
 	def on_event_tx( channel_num, data )
-		# self.log.info "Broadcast message on channel %d was transmitted." % [ channel_num ]
-		data = SecureRandom.bytes( 8 )
-		self.log.info "Sending our own broadcast data: \n%s" % [ hexdump(data) ]
-		self.send_broadcast_data( data )
+		self.log.debug "Channel %d ready for transmission." % [ channel_num ]
 	end
 
 
