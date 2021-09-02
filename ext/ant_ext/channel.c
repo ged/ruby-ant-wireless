@@ -131,6 +131,7 @@ rant_channel_init( VALUE self, VALUE channel_number, VALUE channel_type, VALUE n
 	rb_iv_set( self, "@device_type", Qnil );
 	rb_iv_set( self, "@device_number", Qnil );
 	rb_iv_set( self, "@transmission_type", Qnil );
+	rb_iv_set( self, "@rf_frequency", Qnil );
 
 	rb_hash_aset( registry, channel_number, self );
 
@@ -477,6 +478,8 @@ rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
 
 	ANT_SetChannelRFFreq( ptr->channel_num, ucRFFreq );
 
+	rb_iv_set( self, "@rf_frequency", frequency );
+
 	return Qtrue;
 }
 
@@ -512,6 +515,7 @@ init_ant_channel()
 	rb_attr( rant_cAntChannel, rb_intern("device_number"), 1, 0, 0 );
 	rb_attr( rant_cAntChannel, rb_intern("device_type"), 1, 0, 0 );
 	rb_attr( rant_cAntChannel, rb_intern("transmission_type"), 1, 0, 0 );
+	rb_attr( rant_cAntChannel, rb_intern("rf_frequency"), 1, 0, 0 );
 
 	rb_define_method( rant_cAntChannel, "set_channel_id", rant_channel_set_channel_id, -1 );
 	// rb_define_method( rant_cAntChannel, "set_channel_period",
