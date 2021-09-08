@@ -99,8 +99,8 @@ module Ant::ResponseCallbacks
 		handler_method = Ant::ResponseCallbacks::HANDLER_METHODS[ message_id ] or
 			raise "Unhandled response message ID %p" % [ message_id ]
 
-		if self.respond_to?( handler_method )
-			self.public_send( handler_method, channel_num, data )
+		if self.respond_to?( handler_method, true )
+			self.send( handler_method, channel_num, data )
 		else
 			Ant::ResponseCallbacks.log_response_callback( channel_num, handler_method, message_id, data )
 		end
