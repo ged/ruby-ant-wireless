@@ -11,12 +11,13 @@ require 'ant'
 
 class Chatter
 	extend Loggability
+	include Ant::Channel::EventCallbacks
 
 	log_to :ant
 
 
 	# Use the first ANT device in the system
-	ANT_DEVICE = 0
+	ANT_DEVICE = 1
 
 	# Which network to use
 	ANT_NETWORK_PUBLIC = 0
@@ -25,7 +26,7 @@ class Chatter
 	DEVICE_NUMBER = 49
 
 	# The channel frequency to set
-	CHANNEL_RF_FREQ = 35
+	CHANNEL_RF_FREQ = 2
 
 	# The device type used by this program
 	DEVICE_TYPE = 1
@@ -34,7 +35,6 @@ class Chatter
 	NETWORK_PUBLIC_KEY = "\x00" * 8
 
 
-	### Create and run a chatter.
 	def self::run( args )
 		mode = args.shift or abort "Usage: #$0 [MODE]"
 
@@ -49,31 +49,15 @@ class Chatter
 	end
 
 
-	### Create a Chatter in the given +mode+, which should be either +:master+ or
-	### +:slave+.
 	def initialize( mode )
 		@mode = mode
 		@channel = nil
 		@prompt = TTY::Prompt.new
 	end
 
-	######
-	public
-	######
-
-	##
-	# The mode the chatter is running in as a Symbol; either :master or :slave.
-	attr_reader :mode
-
-	##
-	# The Ant::Channel object the chat is using.
-	attr_reader :channel
-
-	##
-	# The TTY::Prompt object used for input from and output to the terminal.
+	attr_reader :mode, :channel
 
 
-	### Run the chatter
 	def run( args )
 		self.set_signal_handlers
 		Ant.set_response_handler
@@ -94,7 +78,6 @@ class Chatter
 	end
 
 
-	### Prompt the user for input and handle it.
 	def start_read_loop
 		until self.channel.closed?
 			$stderr.print "> "
@@ -119,14 +102,13 @@ class Chatter
 				self.channel.send_burst_transfer( data.strip ) if data
 			end
 
-			$stderr.puts "Channel is still open." unless self.channel.closed?
+			$stderr.puts "Channel is not closed." unless self.channel.closed?
 		end
 
 		$stderr.puts "Stopping read loop."
 	end
 
 
-	### Open an Ant::Channel in the given +mode+, which should be either :master or :slave.
 	def open_channel( mode )
 		flags = 0
 		# flags = Ant::EXT_PARAM_FREQUENCY_AGILITY
@@ -137,15 +119,14 @@ class Chatter
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
 			# ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG|DEVICE_TYPE, 1 )
 			ch.set_channel_id( DEVICE_NUMBER, DEVICE_TYPE, 1 )
+			ch.set_event_handlers( self )
 		when :slave
 			channel_type = Ant::PARAMETER_RX_NOT_TX
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
 			ch.set_channel_id( 0, 0, 0 )
-		else
-			raise "Unknown channel mode %p" % [ mode ]
+			ch.set_event_handlers
 		end
 
-		ch.set_event_handlers
 		ch.set_channel_rf_freq( CHANNEL_RF_FREQ )
 		ch.open
 		Ant.use_extended_messages = true
@@ -154,9 +135,18 @@ class Chatter
 	end
 
 
-	### Set signal handlers to do graceful teardown.
 	def set_signal_handlers
-		# Signal.trap( :INT ) { }
+		Signal.trap( :INT ) { }
+	end
+
+
+	def on_event_rx_acknowledged( channel_num, data )
+		self.log.info "Acknowledged: Rx:\n%s" % [ hexdump(data[1..9]) ]
+	end
+
+	def on_event_tx( channel_num, data )
+		ident = [ 1, 66, 1509 ].pack( "CCn" )
+		self.channel.send_broadcast_data( ident )
 	end
 
 end
