@@ -35,6 +35,20 @@ module Ant
 	autoload :DataUtilities, 'ant/mixins'
 
 
+	# Capabilities hash -- set asynchronously by calling Ant.request_capabilities
+	@capabilities = nil
+	singleton_class.attr_reader( :capabilities )
+
+	# Serial number -- set asynchronously by calling Ant.request_serial_num
+	@serial_num = nil
+	singleton_class.attr_reader( :serial_num )
+
+	# Version of ANT supported by the hardware -- set asynchronously by calling
+	# Ant.request_version
+	@hardware_version = nil
+	singleton_class.attr_reader( :hardware_version )
+
+
 	### Set up the given +object+ as the handler for response callbacks. It must
 	### respond to :handle_response_callback.
 	def self::set_response_handler( object=Ant::ResponseCallbacks )

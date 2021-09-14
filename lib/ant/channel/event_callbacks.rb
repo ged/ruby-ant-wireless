@@ -62,10 +62,6 @@ module Ant::Channel::EventCallbacks
 	end
 
 
-	###############
-	module_function
-	###############
-
 	### Default callback hook -- handles event callbacks.
 	def handle_event_callback( channel_num, event_id, data )
 		handler_method = Ant::Channel::EventCallbacks::HANDLER_METHODS[ event_id ] or
@@ -81,7 +77,10 @@ module Ant::Channel::EventCallbacks
 
 	### Handle an TX event.
 	def on_event_tx( channel_num, data )
-		self.log.debug "Channel %d ready for transmission." % [ channel_num ]
+		channel = Ant::Channel.registry[ channel_num ]
+		self.log.debug "%p ready for transmission." % [ channel ]
+		ident = [ 1, 33 ].pack( "CC" )
+		channel.send_broadcast_data( ident )
 	end
 
 
@@ -145,7 +144,7 @@ module Ant::Channel::EventCallbacks
 			usDeviceNumber     = data.bytes[10] | (data.bytes[11] << 8)
 			ucDeviceType       = data.bytes[12]
 			ucTransmissionType = data.bytes[13]
-			self.log.info "Got an acknowledge on Chan ID(%d/%d/%d)" %
+			self.log.debug "Got an acknowledge on Chan ID(%d/%d/%d)" %
 				[usDeviceNumber, ucDeviceType, ucTransmissionType]
 		end
 
@@ -159,7 +158,7 @@ module Ant::Channel::EventCallbacks
 			usDeviceNumber     = data.bytes[10] | (data.bytes[11] << 8)
 			ucDeviceType       = data.bytes[12]
 			ucTransmissionType = data.bytes[13]
-			self.log.info "Got a burst on Chan ID(%d/%d/%d)" %
+			self.log.debug "Got a burst on Chan ID(%d/%d/%d)" %
 				[usDeviceNumber, ucDeviceType, ucTransmissionType]
 		end
 
@@ -173,7 +172,7 @@ module Ant::Channel::EventCallbacks
 			usDeviceNumber     = data.bytes[10] | (data.bytes[11] << 8)
 			ucDeviceType       = data.bytes[12]
 			ucTransmissionType = data.bytes[13]
-			self.log.info "Got a broadcast on Chan ID(%d/%d/%d)" %
+			self.log.debug "Got a broadcast on Chan ID(%d/%d/%d)" %
 				[usDeviceNumber, ucDeviceType, ucTransmissionType]
 		end
 
@@ -182,7 +181,7 @@ module Ant::Channel::EventCallbacks
 
 
 	def on_event_rx_acknowledged( channel_num, data )
-		self.log.info "Acknowledged: Rx:\n%s" % [ hexdump(data[1..9]) ]
+		self.log.debug "Acknowledged: Rx [%d]:\n%s" % [ data.bytes[0], hexdump(data[1..9]) ]
 	end
 
 
@@ -190,12 +189,12 @@ module Ant::Channel::EventCallbacks
 		channel = (data.bytes[0] & CHANNEL_NUMBER_MASK) >> 5
 		sequence_num = data.bytes[0] & SEQUENCE_NUMBER_MASK
 
-		self.log.info "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, hexdump(data[1..9]) ]
+		self.log.debug "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, hexdump(data[1..9]) ]
 	end
 
 
 	def on_event_rx_broadcast( channel_num, data )
-		self.log.info "Broadcast: Rx:\n%s" % [ hexdump(data[1..9]) ]
+		self.log.debug "Broadcast: Rx [%d]:\n%s" % [ data.bytes[0], hexdump(data[1..9]) ]
 	end
 
 

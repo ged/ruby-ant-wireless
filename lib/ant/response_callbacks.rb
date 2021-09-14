@@ -4,6 +4,7 @@
 require 'loggability'
 
 require 'ant' unless defined?( Ant )
+require 'ant/bitvector'
 
 
 # A module that handles response callbacks by logging them.
@@ -16,80 +17,39 @@ module Ant::ResponseCallbacks
 
 	# Mapping of response message IDs to handler methods
 	HANDLER_METHODS = {
+		Ant::Message::MESG_STARTUP_MESG_ID              => :on_startup_mesg,
+
+		Ant::Message::MESG_CAPABILITIES_ID              => :on_capabilities,
+		Ant::Message::MESG_CHANNEL_STATUS_ID            => :on_channel_status,
 		Ant::Message::MESG_VERSION_ID                   => :on_version,
+		Ant::Message::MESG_CHANNEL_ID_ID                => :on_channel_id,
+		Ant::Message::MESG_EVENT_BUFFERING_CONFIG_ID    => :on_event_buffering_config,
+		Ant::Message::MESG_GET_SERIAL_NUM_ID            => :on_get_serial_num,
+
 		Ant::Message::MESG_RESPONSE_EVENT_ID            => :on_response_event,
 
-		Ant::Message::MESG_UNASSIGN_CHANNEL_ID          => :on_unassign_channel,
-		Ant::Message::MESG_ASSIGN_CHANNEL_ID            => :on_assign_channel,
-		Ant::Message::MESG_CHANNEL_MESG_PERIOD_ID       => :on_channel_mesg_period,
-		Ant::Message::MESG_CHANNEL_SEARCH_TIMEOUT_ID    => :on_channel_search_timeout,
-		Ant::Message::MESG_CHANNEL_RADIO_FREQ_ID        => :on_channel_radio_freq,
 		Ant::Message::MESG_NETWORK_KEY_ID               => :on_network_key,
-		Ant::Message::MESG_RADIO_TX_POWER_ID            => :on_radio_tx_power,
-		Ant::Message::MESG_RADIO_CW_MODE_ID             => :on_radio_cw_mode,
-		Ant::Message::MESG_SYSTEM_RESET_ID              => :on_system_reset,
+		Ant::Message::MESG_ASSIGN_CHANNEL_ID            => :on_assign_channel,
+		Ant::Message::MESG_UNASSIGN_CHANNEL_ID          => :on_unassign_channel,
+		Ant::Message::MESG_CHANNEL_RADIO_FREQ_ID        => :on_channel_radio_freq,
 		Ant::Message::MESG_OPEN_CHANNEL_ID              => :on_open_channel,
+
+		Ant::Message::MESG_RX_EXT_MESGS_ENABLE_ID       => :on_rx_ext_mesgs_enable,
 		Ant::Message::MESG_CLOSE_CHANNEL_ID             => :on_close_channel,
 		Ant::Message::MESG_REQUEST_ID                   => :on_request,
 
 		Ant::Message::MESG_BROADCAST_DATA_ID            => :on_broadcast_data,
 		Ant::Message::MESG_ACKNOWLEDGED_DATA_ID         => :on_acknowledged_data,
 		Ant::Message::MESG_BURST_DATA_ID                => :on_burst_data,
-
-		Ant::Message::MESG_CHANNEL_ID_ID                => :on_channel_id,
-		Ant::Message::MESG_CHANNEL_STATUS_ID            => :on_channel_status,
-		Ant::Message::MESG_RADIO_CW_INIT_ID             => :on_radio_cw_init,
-		Ant::Message::MESG_CAPABILITIES_ID              => :on_capabilities,
-
-		Ant::Message::MESG_STACKLIMIT_ID                => :on_stacklimit,
-
-		Ant::Message::MESG_SCRIPT_DATA_ID               => :on_script_data,
-		Ant::Message::MESG_SCRIPT_CMD_ID                => :on_script_cmd,
-
-		Ant::Message::MESG_ID_LIST_ADD_ID               => :on_id_list_add,
-		Ant::Message::MESG_CRYPTO_ID_LIST_ADD_ID        => :on_crypto_id_list_add,
-		Ant::Message::MESG_ID_LIST_CONFIG_ID            => :on_id_list_config,
-		Ant::Message::MESG_CRYPTO_ID_LIST_CONFIG_ID     => :on_crypto_id_list_config,
-		Ant::Message::MESG_OPEN_RX_SCAN_ID              => :on_open_rx_scan,
-
-		Ant::Message::MESG_EXT_CHANNEL_RADIO_FREQ_ID    => :on_ext_channel_radio_freq_id,
-		Ant::Message::MESG_EXT_BROADCAST_DATA_ID        => :on_ext_broadcast_data,
-		Ant::Message::MESG_EXT_ACKNOWLEDGED_DATA_ID     => :on_ext_acknowledged_data,
-		Ant::Message::MESG_EXT_BURST_DATA_ID            => :on_ext_burst_data,
-
-		Ant::Message::MESG_CHANNEL_RADIO_TX_POWER_ID    => :on_channel_radio_tx_power,
-		Ant::Message::MESG_GET_SERIAL_NUM_ID            => :on_get_serial_num,
-		Ant::Message::MESG_GET_TEMP_CAL_ID              => :on_get_temp_cal,
-		Ant::Message::MESG_SET_LP_SEARCH_TIMEOUT_ID     => :on_set_lp_search_timeout,
-		Ant::Message::MESG_SET_TX_SEARCH_ON_NEXT_ID     => :on_set_tx_search_on_next,
-		Ant::Message::MESG_SERIAL_NUM_SET_CHANNEL_ID_ID => :on_serial_num_set_channel_id,
-		Ant::Message::MESG_RX_EXT_MESGS_ENABLE_ID       => :on_rx_ext_mesgs_enable,
-		Ant::Message::MESG_RADIO_CONFIG_ALWAYS_ID       => :on_radio_config_always,
-		Ant::Message::MESG_ENABLE_LED_FLASH_ID          => :on_enable_led_flash,
-		Ant::Message::MESG_XTAL_ENABLE_ID               => :on_xtal_enable,
-		Ant::Message::MESG_ANTLIB_CONFIG_ID             => :on_antlib_config,
-		Ant::Message::MESG_STARTUP_MESG_ID              => :on_startup_mesg,
-		Ant::Message::MESG_AUTO_FREQ_CONFIG_ID          => :on_auto_freq_config,
-		Ant::Message::MESG_PROX_SEARCH_CONFIG_ID        => :on_prox_search_config,
-
 		Ant::Message::MESG_ADV_BURST_DATA_ID            => :on_adv_burst_data,
-		Ant::Message::MESG_EVENT_BUFFERING_CONFIG_ID    => :on_event_buffering_config,
 
-		Ant::Message::MESG_SET_SEARCH_CH_PRIORITY_ID    => :on_set_search_ch_priority,
+		Ant::Message::MESG_CHANNEL_MESG_PERIOD_ID       => :on_channel_mesg_period,
+		Ant::Message::MESG_CHANNEL_SEARCH_TIMEOUT_ID    => :on_channel_search_timeout,
 
-		Ant::Message::MESG_HIGH_DUTY_SEARCH_MODE_ID     => :on_high_duty_search_mode,
-		Ant::Message::MESG_CONFIG_ADV_BURST_ID          => :on_config_adv_burst,
-		Ant::Message::MESG_EVENT_FILTER_CONFIG_ID       => :on_event_filter_config,
-		Ant::Message::MESG_SDU_CONFIG_ID                => :on_sdu_config,
-		Ant::Message::MESG_SDU_SET_MASK_ID              => :on_sdu_set_mask,
-		Ant::Message::MESG_USER_CONFIG_PAGE_ID          => :on_user_config_page,
-		Ant::Message::MESG_ENCRYPT_ENABLE_ID            => :on_encrypt_enable,
-		Ant::Message::MESG_SET_CRYPTO_KEY_ID            => :on_set_crypto_key,
-		Ant::Message::MESG_SET_CRYPTO_INFO_ID           => :on_set_crypto_info,
-		Ant::Message::MESG_CUBE_CMD_ID                  => :on_cube_cmd,
+		Ant::Message::MESG_RADIO_TX_POWER_ID            => :on_radio_tx_power,
 
-		Ant::Message::MESG_ACTIVE_SEARCH_SHARING_ID     => :on_active_search_sharing,
-		Ant::Message::MESG_NVM_CRYPTO_KEY_OPS_ID        => :on_nvm_crypto_key_ops,
+		# :TODO: There are many other MESG_ constants, but I think most or all of
+		# them are for the serial protocol.
 	}
 
 
@@ -124,7 +84,9 @@ module Ant::ResponseCallbacks
 
 	### Handle version number response messages.
 	def on_version( channel_num, data )
-		self.log.info "ANT Version %s" % [ data ]
+		version = data.strip
+		self.log.info "ANT Version %s" % [ version ]
+		Ant.instance_variable_set( :@hardware_version, version )
 	end
 
 
@@ -132,6 +94,17 @@ module Ant::ResponseCallbacks
 	def on_response_event( channel_num, data )
 		response_event = data.bytes[ 1 ]
 		self.handle_response_callback( channel_num, response_event, data )
+	end
+
+
+	### Log a success or an error message for a response event message.
+	def log_response_event( channel_num, data, err_desc, log_desc )
+		status = data.bytes[ 2 ]
+		if status.nonzero?
+			self.log.error "Error while %s: %#02x" % [ err_desc, status ]
+		else
+			self.log.info( log_desc )
+		end
 	end
 
 
@@ -201,328 +174,118 @@ module Ant::ResponseCallbacks
 	end
 
 
-	### Log a success or an error message for a response event message.
-	def log_response_event( channel_num, data, err_desc, log_desc )
-		status = data.bytes[ 2 ]
-		if status.nonzero?
-			self.log.error "Error while %s: %#02x" % [ err_desc, status ]
-		else
-			self.log.info( log_desc )
-		end
-	end
-
-
 	### Handle channel_mesg_period response events.
 	def on_channel_mesg_period( channel_num, data )
-		self.log_response_event( channel_num, data, "channel_mesg_period", "Channel period assigned." )
+		self.log_response_event( channel_num, data, "setting channel period", "Channel period assigned." )
 	end
 
 
 	### Handle channel_search_timeout response event.
 	def on_channel_search_timeout( channel_num, data )
-		self.log_response_event( channel_num, data, "channel_search_timeout", "Channel assigned." )
+		self.log_response_event( channel_num, data, "setting search timeout", "Search timeout." )
 	end
 
 
 	### Handle radio_tx_power response event.
 	def on_radio_tx_power( channel_num, data )
-		self.log_response_event( channel_num, data, "radio_tx_power", "Channel assigned." )
-	end
-
-
-	### Handle radio_cw_mode response event.
-	def on_radio_cw_mode( channel_num, data )
-		self.log_response_event( channel_num, data, "radio_cw_mode", "Channel assigned." )
-	end
-
-
-	### Handle system_reset response event.
-	def on_system_reset( channel_num, data )
-		self.log_response_event( channel_num, data, "system_reset", "Channel assigned." )
-	end
-
-
-	### Handle request response event.
-	def on_request( channel_num, data )
-		self.log_response_event( channel_num, data, "request", "Channel assigned." )
+		self.log_response_event( channel_num, data, "setting transmit power", "Transmit power changed." )
 	end
 
 
 	### Handle broadcast_data response event.
 	def on_broadcast_data( channel_num, data )
-		self.log_response_event( channel_num, data, "broadcast_data", "Channel assigned." )
+		self.log_response_event( channel_num, data, "sending broadcast data", "Sent broadcast data." )
 	end
 
 
 	### Handle acknowledged_data response event.
 	def on_acknowledged_data( channel_num, data )
-		self.log_response_event( channel_num, data, "acknowledged_data", "Channel assigned." )
+		self.log_response_event( channel_num, data, "sending acked data", "Acked data sent." )
 	end
 
 
 	### Handle burst_data response event.
 	def on_burst_data( channel_num, data )
-		self.log_response_event( channel_num, data, "burst_data", "Channel assigned." )
+		self.log_response_event( channel_num, data, "sending burst data.", "Burst data sent." )
 	end
 
 
 	### Handle channel_status response event.
 	def on_channel_status( channel_num, data )
-		self.log_response_event( channel_num, data, "channel_status", "Channel assigned." )
-	end
-
-
-	### Handle radio_cw_init response event.
-	def on_radio_cw_init( channel_num, data )
-		self.log_response_event( channel_num, data, "radio_cw_init", "Channel assigned." )
+		self.log_response_event( channel_num, data, "requesting channel status", "Got channel status." )
 	end
 
 
 	### Handle capabilities response event.
 	def on_capabilities( channel_num, data )
-		self.log_response_event( channel_num, data, "capabilities", "Channel assigned." )
+		std_opts  = Ant::BitVector.new( data.bytes[2] )
+        adv_opts  = Ant::BitVector.new( data.bytes[3] )
+        adv_opts2 = Ant::BitVector.new( data.bytes[4] )
+        adv_opts3 = Ant::BitVector.new( data.bytes[6] )
+        adv_opts4 = Ant::BitVector.new( data.bytes[7] )
+
+		caps = {
+			max_channels: data.bytes[0],
+			max_networks: data.bytes[1],
+			max_sensrcore_channels: data.bytes[5],
+
+			rx_channels_enabled: std_opts.off?( Ant::CAPABILITIES_NO_RX_CHANNELS ),
+			tx_channels_enabled: std_opts.off?( Ant::CAPABILITIES_NO_TX_CHANNELS ),
+			rx_messages_enabled: std_opts.off?( Ant::CAPABILITIES_NO_RX_MESSAGES ),
+			tx_messages_enabled: std_opts.off?( Ant::CAPABILITIES_NO_TX_MESSAGES ),
+			ackd_messages_enabled: std_opts.off?( Ant::CAPABILITIES_NO_ACKD_MESSAGES ),
+			burst_transfer_enabled: std_opts.off?( Ant::CAPABILITIES_NO_BURST_TRANSFER ),
+
+			overun_underrun: adv_opts.on?( Ant::CAPABILITIES_OVERUN_UNDERRUN ),
+			network_enabled: adv_opts.on?( Ant::CAPABILITIES_NETWORK_ENABLED ),
+			api_version2: adv_opts.on?( Ant::CAPABILITIES_AP1_VERSION_2 ),
+			serial_number_enabled: adv_opts.on?( Ant::CAPABILITIES_SERIAL_NUMBER_ENABLED ),
+			per_channel_tx_power_enabled: adv_opts.on?( Ant::CAPABILITIES_PER_CHANNEL_TX_POWER_ENABLED ),
+			low_priority_search_enabled: adv_opts.on?( Ant::CAPABILITIES_LOW_PRIORITY_SEARCH_ENABLED ),
+			script_enabled: adv_opts.on?( Ant::CAPABILITIES_SCRIPT_ENABLED ),
+			search_list_enabled: adv_opts.on?( Ant::CAPABILITIES_SEARCH_LIST_ENABLED ),
+
+			led_enabled: adv_opts2.on?( Ant::CAPABILITIES_LED_ENABLED ),
+			ext_message_enabled: adv_opts2.on?( Ant::CAPABILITIES_EXT_MESSAGE_ENABLED ),
+			scan_mode_enabled: adv_opts2.on?( Ant::CAPABILITIES_SCAN_MODE_ENABLED ),
+			prox_search_enabled: adv_opts2.on?( Ant::CAPABILITIES_PROX_SEARCH_ENABLED ),
+			ext_assign_enabled: adv_opts2.on?( Ant::CAPABILITIES_EXT_ASSIGN_ENABLED ),
+			antfs_enabled: adv_opts2.on?( Ant::CAPABILITIES_FS_ANTFS_ENABLED ),
+			fit1_enabled: adv_opts2.on?( Ant::CAPABILITIES_FIT1_ENABLED ),
+
+			advanced_burst_enabled: adv_opts3.on?( Ant::CAPABILITIES_ADVANCED_BURST_ENABLED ),
+			event_buffering_enabled: adv_opts3.on?( Ant::CAPABILITIES_EVENT_BUFFERING_ENABLED ),
+			event_filtering_enabled: adv_opts3.on?( Ant::CAPABILITIES_EVENT_FILTERING_ENABLED ),
+			high_duty_search_mode_enabled: adv_opts3.on?( Ant::CAPABILITIES_HIGH_DUTY_SEARCH_MODE_ENABLED ),
+			active_search_sharing_mode_enabled: adv_opts3.on?( Ant::CAPABILITIES_ACTIVE_SEARCH_SHARING_MODE_ENABLED ),
+			selective_data_update_enabled: adv_opts3.on?( Ant::CAPABILITIES_SELECTIVE_DATA_UPDATE_ENABLED ),
+			encrypted_channel_enabled: adv_opts3.on?( Ant::CAPABILITIES_ENCRYPTED_CHANNEL_ENABLED ),
+
+			rfactive_notification_enabled: adv_opts4.on?( Ant::CAPABILITIES_RFACTIVE_NOTIFICATION_ENABLED ),
+		}.freeze
+
+		caplist = caps.keys.select do |cap|
+			caps[ cap ]
+		end
+		self.log.info "ANT Capabilities: %s" % [ caplist.sort.join(' ') ]
+
+		Ant.instance_variable_set( :@capabilities, caps );
 	end
 
 
-	### Handle stacklimit response event.
-	def on_stacklimit( channel_num, data )
-		self.log_response_event( channel_num, data, "stacklimit", "Channel assigned." )
-	end
-
-
-	### Handle script_data response event.
-	def on_script_data( channel_num, data )
-		self.log_response_event( channel_num, data, "script_data", "Channel assigned." )
-	end
-
-
-	### Handle script_cmd response event.
-	def on_script_cmd( channel_num, data )
-		self.log_response_event( channel_num, data, "script_cmd", "Channel assigned." )
-	end
-
-
-	### Handle id_list_add response event.
-	def on_id_list_add( channel_num, data )
-		self.log_response_event( channel_num, data, "id_list_add", "Channel assigned." )
-	end
-
-
-	### Handle crypto_id_list_add response event.
-	def on_crypto_id_list_add( channel_num, data )
-		self.log_response_event( channel_num, data, "crypto_id_list_add", "Channel assigned." )
-	end
-
-
-	### Handle id_list_config response event.
-	def on_id_list_config( channel_num, data )
-		self.log_response_event( channel_num, data, "id_list_config", "Channel assigned." )
-	end
-
-
-	### Handle crypto_id_list_config response event.
-	def on_crypto_id_list_config( channel_num, data )
-		self.log_response_event( channel_num, data, "crypto_id_list_config", "Channel assigned." )
-	end
-
-
-	### Handle open_rx_scan response event.
-	def on_open_rx_scan( channel_num, data )
-		self.log_response_event( channel_num, data, "open_rx_scan", "Channel assigned." )
-	end
-
-
-	### Handle ext_channel_radio_freq_id response event.
-	def on_ext_channel_radio_freq_id( channel_num, data )
-		self.log_response_event( channel_num, data, "ext_channel_radio_freq_id", "Channel assigned." )
-	end
-
-
-	### Handle ext_broadcast_data response event.
-	def on_ext_broadcast_data( channel_num, data )
-		self.log_response_event( channel_num, data, "ext_broadcast_data", "Channel assigned." )
-	end
-
-
-	### Handle ext_acknowledged_data response event.
-	def on_ext_acknowledged_data( channel_num, data )
-		self.log_response_event( channel_num, data, "ext_acknowledged_data", "Channel assigned." )
-	end
-
-
-	### Handle ext_burst_data response event.
-	def on_ext_burst_data( channel_num, data )
-		self.log_response_event( channel_num, data, "ext_burst_data", "Channel assigned." )
-	end
-
-
-	### Handle channel_radio_tx_power response event.
-	def on_channel_radio_tx_power( channel_num, data )
-		self.log_response_event( channel_num, data, "channel_radio_tx_power", "Channel assigned." )
-	end
-
-
-	### Handle get_serial_num response event.
+	### Handle serial number response event.
 	def on_get_serial_num( channel_num, data )
-		self.log_response_event( channel_num, data, "get_serial_num", "Channel assigned." )
+		serial = data.unpack1( 'L<' )
+
+		self.log.debug "ANT device serial number: %d." % [ serial ]
+		Ant.instance_variable_set( :@serial_num, serial )
 	end
 
 
-	### Handle get_temp_cal response event.
-	def on_get_temp_cal( channel_num, data )
-		self.log_response_event( channel_num, data, "get_temp_cal", "Channel assigned." )
+	### Handle request response event.
+	def on_request( channel_num, data )
+		self.log_response_event( channel_num, data, "requesting an unsupported message", "[n/a]" )
 	end
-
-
-	### Handle set_lp_search_timeout response event.
-	def on_set_lp_search_timeout( channel_num, data )
-		self.log_response_event( channel_num, data, "set_lp_search_timeout", "Channel assigned." )
-	end
-
-
-	### Handle set_tx_search_on_next response event.
-	def on_set_tx_search_on_next( channel_num, data )
-		self.log_response_event( channel_num, data, "set_tx_search_on_next", "Channel assigned." )
-	end
-
-
-	### Handle serial_num_set_channel_id response event.
-	def on_serial_num_set_channel_id( channel_num, data )
-		self.log_response_event( channel_num, data, "serial_num_set_channel_id", "Channel assigned." )
-	end
-
-
-	### Handle rx_ext_mesgs_enable response event.
-	def on_rx_ext_mesgs_enable( channel_num, data )
-		self.log_response_event( channel_num, data, "rx_ext_mesgs_enable", "Channel assigned." )
-	end
-
-
-	### Handle radio_config_always response event.
-	def on_radio_config_always( channel_num, data )
-		self.log_response_event( channel_num, data, "radio_config_always", "Channel assigned." )
-	end
-
-
-	### Handle enable_led_flash response event.
-	def on_enable_led_flash( channel_num, data )
-		self.log_response_event( channel_num, data, "enable_led_flash", "Channel assigned." )
-	end
-
-
-	### Handle xtal_enable response event.
-	def on_xtal_enable( channel_num, data )
-		self.log_response_event( channel_num, data, "xtal_enable", "Channel assigned." )
-	end
-
-
-	### Handle antlib_config response event.
-	def on_antlib_config( channel_num, data )
-		self.log_response_event( channel_num, data, "antlib_config", "Channel assigned." )
-	end
-
-
-	### Handle auto_freq_config response event.
-	def on_auto_freq_config( channel_num, data )
-		self.log_response_event( channel_num, data, "auto_freq_config", "Channel assigned." )
-	end
-
-
-	### Handle prox_search_config response event.
-	def on_prox_search_config( channel_num, data )
-		self.log_response_event( channel_num, data, "prox_search_config", "Channel assigned." )
-	end
-
-
-	### Handle adv_burst_data response event.
-	def on_adv_burst_data( channel_num, data )
-		self.log_response_event( channel_num, data, "adv_burst_data", "Channel assigned." )
-	end
-
-
-	### Handle event_buffering_config response event.
-	def on_event_buffering_config( channel_num, data )
-		self.log_response_event( channel_num, data, "event_buffering_config", "Channel assigned." )
-	end
-
-
-	### Handle set_search_ch_priority response event.
-	def on_set_search_ch_priority( channel_num, data )
-		self.log_response_event( channel_num, data, "set_search_ch_priority", "Channel assigned." )
-	end
-
-
-	### Handle high_duty_search_mode response event.
-	def on_high_duty_search_mode( channel_num, data )
-		self.log_response_event( channel_num, data, "high_duty_search_mode", "Channel assigned." )
-	end
-
-
-	### Handle config_adv_burst response event.
-	def on_config_adv_burst( channel_num, data )
-		self.log_response_event( channel_num, data, "config_adv_burst", "Channel assigned." )
-	end
-
-
-	### Handle event_filter_config response event.
-	def on_event_filter_config( channel_num, data )
-		self.log_response_event( channel_num, data, "event_filter_config", "Channel assigned." )
-	end
-
-
-	### Handle sdu_config response event.
-	def on_sdu_config( channel_num, data )
-		self.log_response_event( channel_num, data, "sdu_config", "Channel assigned." )
-	end
-
-
-	### Handle sdu_set_mask response event.
-	def on_sdu_set_mask( channel_num, data )
-		self.log_response_event( channel_num, data, "sdu_set_mask", "Channel assigned." )
-	end
-
-
-	### Handle user_config_page response event.
-	def on_user_config_page( channel_num, data )
-		self.log_response_event( channel_num, data, "user_config_page", "Channel assigned." )
-	end
-
-
-	### Handle encrypt_enable response event.
-	def on_encrypt_enable( channel_num, data )
-		self.log_response_event( channel_num, data, "encrypt_enable", "Channel assigned." )
-	end
-
-
-	### Handle set_crypto_key response event.
-	def on_set_crypto_key( channel_num, data )
-		self.log_response_event( channel_num, data, "set_crypto_key", "Channel assigned." )
-	end
-
-
-	### Handle set_crypto_info response event.
-	def on_set_crypto_info( channel_num, data )
-		self.log_response_event( channel_num, data, "set_crypto_info", "Channel assigned." )
-	end
-
-
-	### Handle cube_cmd response event.
-	def on_cube_cmd( channel_num, data )
-		self.log_response_event( channel_num, data, "cube_cmd", "Channel assigned." )
-	end
-
-
-	### Handle active_search_sharing response event.
-	def on_active_search_sharing( channel_num, data )
-		self.log_response_event( channel_num, data, "active_search_sharing", "Channel assigned." )
-	end
-
-
-	### Handle nvm_crypto_key_ops response event.
-	def on_nvm_crypto_key_ops( channel_num, data )
-		self.log_response_event( channel_num, data, "nvm_crypto_key_ops", "Channel assigned." )
-	end
-
 
 end # module Ant::ResponseCallbacks
 

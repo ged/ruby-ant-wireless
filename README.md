@@ -57,6 +57,12 @@ This task will install dependencies, and do any other necessary setup for develo
 
 ## License
 
+Portions of this code are from StaticCling, and are used under the
+terms of the 3-Clause BSD License. Specifics can be found in the
+appropriate files.
+
+This software is:
+
 Copyright (c) 2021, Ravn Group
 
 Permission is hereby granted, free of charge, to any person obtaining
@@ -82,3 +88,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [ant]: https://www.thisisant.com/
 [antstick]: https://buy.garmin.com/en-US/US/p/10997/pn/010-01058-00
 [antsdk]: https://www.thisisant.com/developer/resources/downloads/#software_tab
+

@@ -463,6 +463,56 @@ rant_s_on_response( int argc, VALUE *argv, VALUE module )
 }
 
 
+/*
+ * call-seq:
+ *    Ant.request_capabilities
+ *
+ * Request the current ANT device's capabilities. These will be delivered
+ * via a callback to the #on_capabilities response callback, which by default
+ * extracts them into a Hash which is stored at Ant.capabilities.
+ *
+ */
+static VALUE
+rant_s_request_capabilities( VALUE module )
+{
+	bool rval = ANT_RequestMessage( 0, MESG_CAPABILITIES_ID );
+	return rval ? Qtrue : Qfalse;
+}
+
+
+/*
+ * call-seq:
+ *    Ant.request_serial_num
+ *
+ * Request the current ANT device's serial number. The result will be delivered
+ * via a callback to the #on_get_serial_num response callback, which by default
+ * extracts it and stores it at Ant.serial_number.
+ *
+ */
+static VALUE
+rant_s_request_serial_num( VALUE module )
+{
+	bool rval = ANT_RequestMessage( 0, MESG_GET_SERIAL_NUM_ID );
+	return rval ? Qtrue : Qfalse;
+}
+
+
+/*
+ * call-seq:
+ *    Ant.request_version
+ *
+ * Request the current device's ANT version. The result will be delivered
+ * via a callback to the #on_version response callback, which by default
+ * extracts it and stores it at Ant.hardware_version.
+ *
+ */
+static VALUE
+rant_s_request_version( VALUE module )
+{
+	bool rval = ANT_RequestMessage( 0, MESG_VERSION_ID );
+	return rval ? Qtrue : Qfalse;
+}
+
 
 /*
  * call-seq:
@@ -520,6 +570,10 @@ Init_ant_ext()
 
 	rb_define_singleton_method( rant_mAnt, "on_response", rant_s_on_response, -1 );
 	// EXPORT void ANT_UnassignAllResponseFunctions(); //Unassigns all response functions
+
+	rb_define_singleton_method( rant_mAnt, "request_capabilities", rant_s_request_capabilities, 0 );
+	rb_define_singleton_method( rant_mAnt, "request_serial_num", rant_s_request_serial_num, 0 );
+	rb_define_singleton_method( rant_mAnt, "request_version", rant_s_request_version, 0 );
 
 	rb_define_singleton_method( rant_mAnt, "log_directory=", rant_s_log_directory_eq, 1 );
 
@@ -617,6 +671,9 @@ Init_ant_ext()
 	EXPOSE_CONST( CAPABILITIES_ACTIVE_SEARCH_SHARING_MODE_ENABLED );
 	EXPOSE_CONST( CAPABILITIES_SELECTIVE_DATA_UPDATE_ENABLED );
 	EXPOSE_CONST( CAPABILITIES_ENCRYPTED_CHANNEL_ENABLED );
+
+	// Not in the header; this is taken from 9.5.7.4, ANT Message Protocol and Usage v5.1
+	rb_define_const( rant_mAnt, "CAPABILITIES_RFACTIVE_NOTIFICATION_ENABLED", INT2FIX(0) );
 
 	EXPOSE_CONST( CHANNEL_NUMBER_MASK );
 	EXPOSE_CONST( SEQUENCE_NUMBER_MASK );

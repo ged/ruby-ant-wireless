@@ -9,6 +9,7 @@ require 'ant' unless defined?( Ant )
 class Ant::Channel
 	extend Loggability
 
+
 	# The default network number
 	DEFAULT_NETWORK_NUMBER = 0
 
@@ -20,7 +21,8 @@ class Ant::Channel
 	# Autoloads
 	#
 
-	autoload :EventCallbacks, 'ant/channel/event_callbacks'
+	require 'ant/channel/event_callbacks'
+	include Ant::Channel::EventCallbacks
 
 
 	# Loggability API -- log to the Ant logger
@@ -44,7 +46,7 @@ class Ant::Channel
 
 
 	### Set up the given +mod+ as the handler module for channel events.
-	def set_event_handlers( object=Ant::Channel::EventCallbacks )
+	def set_event_handlers( object=self )
 		self.on_event( &object.method(:handle_event_callback) )
 	end
 
@@ -107,4 +109,5 @@ class Ant::Channel
 	end
 
 end # class Ant::Channel
+
 

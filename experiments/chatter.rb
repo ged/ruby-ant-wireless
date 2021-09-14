@@ -23,7 +23,7 @@ class Chatter
 	ANT_NETWORK_PUBLIC = 0
 
 	# The ANT device number to use
-	DEVICE_NUMBER = 49
+	DEVICE_NUMBER = SecureRandom.random_number( 1...65535 )
 
 	# The channel frequency to set
 	CHANNEL_RF_FREQ = 2
@@ -96,7 +96,7 @@ class Chatter
 				$stderr.puts "Ok, I think I closed it (%p) %p." % [ Ant::Channel.registry, self.channel ]
 			when /^A\b/
 				$stderr.puts "Sending acked data."
-				self.channel.send_acknowledged_data( "some data" )
+				self.channel.send_acknowledged_data( "PAIR" )
 			else
 				$stderr.puts "Sending burst data."
 				self.channel.send_burst_transfer( data.strip ) if data
@@ -119,7 +119,7 @@ class Chatter
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
 			# ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG|DEVICE_TYPE, 1 )
 			ch.set_channel_id( DEVICE_NUMBER, DEVICE_TYPE, 1 )
-			ch.set_event_handlers( self )
+			ch.set_event_handlers
 		when :slave
 			channel_type = Ant::PARAMETER_RX_NOT_TX
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
@@ -128,6 +128,7 @@ class Chatter
 		end
 
 		ch.set_channel_rf_freq( CHANNEL_RF_FREQ )
+		self.log.info "Opening %p" % [ ch ]
 		ch.open
 		Ant.use_extended_messages = true
 
@@ -136,16 +137,17 @@ class Chatter
 
 
 	def set_signal_handlers
-		Signal.trap( :INT ) { }
+		# Signal.trap( :INT ) { }
 	end
 
 
-	def on_event_rx_acknowledged( channel_num, data )
-		self.log.info "Acknowledged: Rx:\n%s" % [ hexdump(data[1..9]) ]
-	end
-
+	# def on_event_rx_acknowledged( channel_num, data )
+	# 	self.log.fatal "Acknowledged: Rx [%d]:\n%s" % [ data.bytes[0], hexdump(data[1..9]) ]
+	# end
+	#
 	def on_event_tx( channel_num, data )
-		ident = [ 1, 66, 1509 ].pack( "CCn" )
+		self.log.fatal "Transmitting pairing info."
+		ident = [ 1, 33 ].pack( "CC" )
 		self.channel.send_broadcast_data( ident )
 	end
 
@@ -154,6 +156,7 @@ end
 
 if __FILE__ == $0
 	Loggability.level = :debug
+	Loggability.format_with( :color )
 	Chatter.run( ARGV )
 end
 
