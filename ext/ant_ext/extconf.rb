@@ -14,6 +14,7 @@ have_header( 'ruby/thread.h' ) or
 	abort "Your Ruby is too old!"
 
 have_func( 'ANT_Init', 'libant.h' )
+have_func( 'ANT_IsInitialized', 'libant.h' )
 have_func( 'ANT_LibVersion', 'libant.h' )
 have_func( 'ANT_GetDeviceSerialNumber', 'libant.h' )
 

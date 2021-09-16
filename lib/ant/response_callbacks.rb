@@ -139,13 +139,15 @@ module Ant::ResponseCallbacks
 
 	### Handle channel assignment event response messages.
 	def on_assign_channel( channel_num, data )
-		self.log_response_event( channel_num, data, "assigning channel", "Channel assigned." )
+		self.log_response_event( channel_num, data, "assigning channel",
+			"Channel %d assigned." % [channel_num] )
 	end
 
 
 	### Handle channel unassignment event response messages.
-	def on_unassign_channel
-		self.log_response_event( channel_num, data, "unassigning channel", "Channel unassigned." )
+	def on_unassign_channel( channel_num, data )
+		self.log_response_event( channel_num, data, "unassigning channel",
+			"Channel %d unassigned." % [channel_num] )
 	end
 
 
@@ -213,6 +215,13 @@ module Ant::ResponseCallbacks
 	### Handle channel_status response event.
 	def on_channel_status( channel_num, data )
 		self.log_response_event( channel_num, data, "requesting channel status", "Got channel status." )
+	end
+
+
+	### Handle on_rx_ext_mesgs_enable response event.
+	def on_rx_ext_mesgs_enable( channel_num, data )
+		self.log_response_event( channel_num, data, "enabling extended message: not supported",
+			"Enabled extended messages." )
 	end
 
 

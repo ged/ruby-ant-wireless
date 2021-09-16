@@ -33,6 +33,15 @@ RSpec.describe( Ant ) do
 	end
 
 
+	it "knows if it's been initialized or not", :hardware do
+		expect( Ant ).to_not be_initialized
+		Ant.init
+		expect( Ant ).to be_initialized
+		Ant.close
+		expect( Ant ).to_not be_initialized
+	end
+
+
 	it "can validate a device number" do
 		expect( described_class.validate_device_number(111) ).to eq( 111 )
 		expect {

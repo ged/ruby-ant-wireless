@@ -225,6 +225,17 @@ rant_s_init( int argc, VALUE *argv, VALUE _module )
 }
 
 
+static VALUE
+rant_s_initialized_p( VALUE _module )
+{
+#ifdef HAVE_ANT_ISINITIALIZED
+	const bool initialized = ANT_IsInitialized();
+	return initialized ? Qtrue : Qfalse;
+#else
+	rb_notimplement();
+#endif
+}
+
 
 /*
  * call-seq:
@@ -558,6 +569,7 @@ Init_ant_ext()
 	rb_define_singleton_method( rant_mAnt, "device_serial_number", rant_s_device_serial_number, 0 );
 
 	rb_define_singleton_method( rant_mAnt, "init", rant_s_init, -1 );
+	rb_define_singleton_method( rant_mAnt, "initialized?", rant_s_initialized_p, 0 );
 	// rb_define_singleton_method( rant_mAnt, "init_ext", rant_s_init_ext, 4 );
 	rb_define_singleton_method( rant_mAnt, "close", rant_s_close, 0 );
 	rb_define_singleton_method( rant_mAnt, "reset", rant_s_reset, 0 );

@@ -48,6 +48,9 @@ module Ant
 	@hardware_version = nil
 	singleton_class.attr_reader( :hardware_version )
 
+	# Add some convenience aliases
+	singleton_class.alias_method( :is_initialized?, :initialized? )
+
 
 	### Set up the given +object+ as the handler for response callbacks. It must
 	### respond to :handle_response_callback.

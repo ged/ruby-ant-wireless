@@ -20,6 +20,8 @@ RSpec.configure do |config|
 		Ant.init
 		Ant.close
 	rescue => err
+		$stderr.puts "%p while initializing hardware: %s; disabling hardware specs" %
+			[ err.class, err.message ]
 		config.filter_run_excluding( :hardware )
 	end
 
