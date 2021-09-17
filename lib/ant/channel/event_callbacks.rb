@@ -181,7 +181,7 @@ module Ant::Channel::EventCallbacks
 
 
 	def on_event_rx_acknowledged( channel_num, data )
-		self.log.debug "Acknowledged: Rx [%d]:\n%s" % [ data.bytes[0], hexdump(data[1..9]) ]
+		self.log.debug "Acknowledged: Rx [%d]:\n%s" % [ data.bytes[0], Ant::DataUtilities.hexdump(data[1..9]) ]
 	end
 
 
@@ -189,12 +189,12 @@ module Ant::Channel::EventCallbacks
 		channel = (data.bytes[0] & CHANNEL_NUMBER_MASK) >> 5
 		sequence_num = data.bytes[0] & SEQUENCE_NUMBER_MASK
 
-		self.log.debug "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, hexdump(data[1..9]) ]
+		self.log.debug "Burst (0x%02x): Rx: %d:\n%s" % [ channel, sequence_num, Ant::DataUtilities.hexdump(data[1..9]) ]
 	end
 
 
 	def on_event_rx_broadcast( channel_num, data )
-		self.log.debug "Broadcast: Rx [%d]:\n%s" % [ data.bytes[0], hexdump(data[1..9]) ]
+		self.log.debug "Broadcast: Rx [%d]:\n%s" % [ data.bytes[0], Ant::DataUtilities.hexdump(data[1..9]) ]
 	end
 
 
