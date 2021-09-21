@@ -119,7 +119,7 @@ class Chatter
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
 			# ch.set_channel_id( DEVICE_NUMBER, ANT_ID_DEVICE_TYPE_PAIRING_FLAG|DEVICE_TYPE, 1 )
 			ch.set_channel_id( DEVICE_NUMBER, DEVICE_TYPE, 1 )
-			ch.set_event_handlers
+			ch.set_event_handlers( self )
 		when :slave
 			channel_type = Ant::PARAMETER_RX_NOT_TX
 			ch = Ant.assign_channel( ANT_DEVICE, channel_type, ANT_NETWORK_PUBLIC, flags )
@@ -141,10 +141,10 @@ class Chatter
 	end
 
 
-	# def on_event_rx_acknowledged( channel_num, data )
-	# 	self.log.fatal "Acknowledged: Rx [%d]:\n%s" % [ data.bytes[0], hexdump(data[1..9]) ]
-	# end
-	#
+	 def on_event_rx_acknowledged( channel_num, data )
+		self.log.warn "Acknowledged: Rx [%d]:\n%s" % [ data.bytes[0], Ant::DataUtilities.hexdump(data[1..9]) ]
+	 end
+	
 	def on_event_tx( channel_num, data )
 		self.log.fatal "Transmitting pairing info."
 		ident = [ 1, 33 ].pack( "CC" )
