@@ -22,6 +22,9 @@ class Chatter
 	# Which network to use
 	ANT_NETWORK_PUBLIC = 0
 
+	# The public network key
+	ANT_NETWORK_PUBLIC_KEY = "\x00" * 8
+
 	# The ANT device number to use
 	DEVICE_NUMBER = SecureRandom.random_number( 1...65535 )
 
@@ -30,9 +33,6 @@ class Chatter
 
 	# The device type used by this program
 	DEVICE_TYPE = 1
-
-	# The public network key
-	NETWORK_PUBLIC_KEY = "\x00" * 8
 
 
 	def self::run( args )
@@ -65,9 +65,11 @@ class Chatter
 		self.log.info "Using a %s (%s)" % Ant.device_usb_info( ANT_DEVICE )
 		Ant.reset
 
-		Ant.set_network_key( 0, NETWORK_PUBLIC_KEY )
+		Ant.set_network_key( ANT_NETWORK_PUBLIC, ANT_NETWORK_PUBLIC_KEY )
 		@channel = self.open_channel( self.mode )
 		self.start_read_loop
+	rescue Interrupt
+		$stderr.puts "Caught an interrupt."
 	ensure
 		$stdin.close
 

@@ -178,8 +178,8 @@ rant_channel_set_channel_id( int argc, VALUE *argv, VALUE self )
 	rb_scan_args( argc, argv, "31", &device_number, &device_type, &transmission_type, &timeout );
 
 	usDeviceNumber = NUM2USHORT( device_number );
-	ucDeviceType = NUM2USHORT( device_type );
-	ucTransmissionType = NUM2USHORT( transmission_type );
+	ucDeviceType = NUM2CHR( device_type );
+	ucTransmissionType = NUM2CHR( transmission_type );
 
 	if ( RTEST(timeout) )
 		ulResponseTime = NUM2UINT( timeout );
@@ -199,9 +199,106 @@ rant_channel_set_channel_id( int argc, VALUE *argv, VALUE self )
 }
 
 
-// ANT_SetChannelPeriod_RTO(UCHAR ucANTChannel_, USHORT usMesgPeriod_, ULONG ulResponseTime_);
-// ANT_SetChannelSearchTimeout_RTO(UCHAR ucANTChannel_, UCHAR ucSearchTimeout_, ULONG ulResponseTime_);
-// ANT_SetChannelRFFreq_RTO(UCHAR ucANTChannel_, UCHAR ucRFFreq_, ULONG ulResponseTime_);
+/*
+ * call-seq:
+ *    channel.set_channel_period( period, timeout=0 )
+ *
+ * This message configures the messaging +period+ of a specific channel where:
+ * Messaging period = channel period time +period+ * 32768.
+ *
+ * E.g.: To send or receive a message at 4Hz, set the channel period to 8192 (32768/4).
+ *
+ * Note: The minimum acceptable channel period is difficult to specify as it is
+ * system dependent and depends on the number of configured channels and their use.
+ * Caution should be used to appropriately test the system when high data rates are
+ * used, especially in combination with multiple channels.
+ *
+ */
+static VALUE
+rant_channel_set_channel_period( int argc, VALUE *argv, VALUE self )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	VALUE period, timeout;
+	unsigned int ulResponseTime = 0;
+	unsigned short usMesgPeriod;
+	bool result;
+
+	rb_scan_args( argc, argv, "11", &period, &timeout );
+
+	usMesgPeriod = NUM2USHORT( period );
+	if ( RTEST(timeout) )
+		ulResponseTime = NUM2UINT( timeout );
+
+	result = ANT_SetChannelPeriod_RTO( ptr->channel_num, usMesgPeriod, ulResponseTime );
+
+	if ( !result )
+		rb_raise( rb_eRuntimeError, "Failed to set the channel period." );
+
+	return Qtrue;
+}
+
+
+/*
+ * call-seq:
+ *    channel.set_channel_search_timeout( search_timeout, timeout=0 )
+ *
+ * Configure the length of time that the receiver will search for a channel
+ * before timing out. Note that a value of zero will disable high priority
+ * search mode, and a value of 255 sets an infinite search time-out. The
+ * exception to this is the AP1 module, which has only a high priority search
+ * mode. For AP1 only, a value of 0 is an immediate search timeout, and a value
+ * of 255 corresponds to approximately 10.5 minutes.
+ *
+ */
+static VALUE
+rant_channel_set_channel_search_timeout( int argc, VALUE *argv, VALUE self )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	VALUE search_timeout, timeout;
+	unsigned int ulResponseTime = 0;
+	unsigned char ucSearchTimeout;
+	bool result;
+
+	rb_scan_args( argc, argv, "11", &search_timeout, &timeout );
+
+	ucSearchTimeout = NUM2CHR( search_timeout );
+	if ( RTEST(timeout) )
+		ulResponseTime = NUM2UINT( timeout );
+
+	result = ANT_SetChannelSearchTimeout_RTO( ptr->channel_num, ucSearchTimeout, ulResponseTime );
+
+	if ( !result )
+		rb_raise( rb_eRuntimeError, "Failed to set the channel search timeout." );
+
+	return Qtrue;
+}
+
+
+/*
+ * call-seq:
+ *    channel.set_channel_rf_freq( frequency )
+ *
+ * Set the ANT RF +frequency+.
+ *
+ */
+static VALUE
+rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	unsigned short ucRFFreq = NUM2USHORT( frequency );
+
+	if ( ucRFFreq > 124 ) {
+		rb_raise( rb_eArgError, "frequency must be between 0 and 124." );
+	}
+
+	ANT_SetChannelRFFreq( ptr->channel_num, ucRFFreq );
+
+	rb_iv_set( self, "@rf_frequency", frequency );
+
+	return Qtrue;
+}
+
+
 
 
 /*
@@ -459,31 +556,6 @@ rant_channel_send_broadcast_data( VALUE self, VALUE data )
 }
 
 
-/*
- * call-seq:
- *    channel.set_channel_rf_freq( frequency )
- *
- * Set the ANT RF +frequency+.
- *
- */
-static VALUE
-rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
-{
-	rant_channel_t *ptr = rant_get_channel( self );
-	unsigned short ucRFFreq = NUM2USHORT( frequency );
-
-	if ( ucRFFreq > 124 ) {
-		rb_raise( rb_eArgError, "frequency must be between 0 and 124." );
-	}
-
-	ANT_SetChannelRFFreq( ptr->channel_num, ucRFFreq );
-
-	rb_iv_set( self, "@rf_frequency", frequency );
-
-	return Qtrue;
-}
-
-
 void
 init_ant_channel()
 {
@@ -518,10 +590,9 @@ init_ant_channel()
 	rb_attr( rant_cAntChannel, rb_intern("rf_frequency"), 1, 0, 0 );
 
 	rb_define_method( rant_cAntChannel, "set_channel_id", rant_channel_set_channel_id, -1 );
-	// rb_define_method( rant_cAntChannel, "set_channel_period",
-	// rant_channel_set_channel_period, -1 );
-	// rb_define_method( rant_cAntChannel, "set_channel_search_timeout",
-	// rant_channel_set_channel_search_timeout, -1 );
+	rb_define_method( rant_cAntChannel, "set_channel_period", rant_channel_set_channel_period, -1 );
+	rb_define_method( rant_cAntChannel, "set_channel_search_timeout",
+		rant_channel_set_channel_search_timeout, -1 );
 	rb_define_method( rant_cAntChannel, "set_channel_rf_freq", rant_channel_set_channel_rf_freq, 1 );
 
 	rb_define_method( rant_cAntChannel, "open", rant_channel_open, -1 );

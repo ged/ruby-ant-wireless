@@ -100,8 +100,10 @@ module Ant::ResponseCallbacks
 	### Log a success or an error message for a response event message.
 	def log_response_event( channel_num, data, err_desc, log_desc )
 		status = data.bytes[ 2 ]
+		channel = Ant::Channel.registry[ channel_num ]
+
 		if status.nonzero?
-			self.log.error "Error while %s: %#02x" % [ err_desc, status ]
+			self.log.error "Error while %s on %p: %#02x" % [ err_desc, channel, status ]
 		else
 			self.log.info( log_desc )
 		end
@@ -208,7 +210,7 @@ module Ant::ResponseCallbacks
 
 	### Handle burst_data response event.
 	def on_burst_data( channel_num, data )
-		self.log_response_event( channel_num, data, "sending burst data.", "Burst data sent." )
+		self.log_response_event( channel_num, data, "sending burst data", "Burst data sent." )
 	end
 
 

@@ -302,7 +302,7 @@ rant_s_set_network_key( VALUE _module, VALUE network_number, VALUE key )
 	}
 
 	if ( !ANT_SetNetworkKey(ucNetNumber, (unsigned char *)pucKey) ) {
-		rb_raise( rb_eRuntimeError, "could not set the network key." );
+		rant_log( "error", "could not set the network key." );
 	}
 
 	return Qtrue;
