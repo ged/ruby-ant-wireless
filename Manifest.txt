@@ -3,6 +3,7 @@ LICENSE.txt
 README.md
 lib/ant-wireless.rb
 lib/ant.rb
+lib/ant/bitvector.rb
 lib/ant/channel.rb
 lib/ant/channel/event_callbacks.rb
 lib/ant/message.rb
@@ -21,4 +22,5 @@ ext/ant_ext/message.c
 ext/ant_ext/types.h
 ext/ant_ext/version.h
 spec/ant_spec.rb
+spec/bitvector_spec.rb
 spec/spec_helper.rb
