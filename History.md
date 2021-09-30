@@ -1,6 +1,14 @@
 # Release History for ruby-ant
 
 ---
+## v0.2.1 [2021-09-30] Michael Granger <ged@FaerieMUD.org>
+
+Bugfixes:
+
+- Add missing files to the manifest
+
+
+
 ## v0.2.0 [2021-09-22] Michael Granger <ged@FaerieMUD.org>
 
 Enhancements:
