@@ -132,6 +132,7 @@ rant_channel_init( VALUE self, VALUE channel_number, VALUE channel_type, VALUE n
 	rb_iv_set( self, "@device_number", Qnil );
 	rb_iv_set( self, "@transmission_type", Qnil );
 	rb_iv_set( self, "@rf_frequency", Qnil );
+	rb_iv_set( self, "@agility_frequencies", Qnil );
 
 	rb_hash_aset( registry, channel_number, self );
 
@@ -294,6 +295,31 @@ rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
 	ANT_SetChannelRFFreq( ptr->channel_num, ucRFFreq );
 
 	rb_iv_set( self, "@rf_frequency", frequency );
+
+	return Qtrue;
+}
+
+
+static VALUE
+rant_channet_set_frequency_agility( VALUE self, VALUE freq1, VALUE freq2, VALUE freq3 )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	unsigned char ucFreq1 = NUM2CHR( freq1 ),
+		ucFreq2 = NUM2CHR( freq2 ),
+		ucFreq3 = NUM2CHR( freq3 );
+	VALUE frequencies = rb_ary_new_from_args( 3, freq1, freq2, freq3 );
+
+	if ( ucFreq1 > 124 || ucFreq2 > 124 || ucFreq3 > 124 ) {
+		rb_raise( rb_eArgError, "frequencies must be between 0 and 124." );
+	}
+
+	rant_log_obj( self, "info",
+		"Configuring channel %d to use frequency agility on %d, %d, and %d MHz.",
+		ptr->channel_num, ucFreq1 + 2400, ucFreq2 + 2400, ucFreq3 + 2400 );
+	ANT_ConfigFrequencyAgility( ptr->channel_num, ucFreq1, ucFreq2, ucFreq3 );
+
+	rb_ary_freeze( frequencies );
+	rb_iv_set( self, "@agility_frequencies", frequencies );
 
 	return Qtrue;
 }
@@ -588,12 +614,14 @@ init_ant_channel()
 	rb_attr( rant_cAntChannel, rb_intern("device_type"), 1, 0, 0 );
 	rb_attr( rant_cAntChannel, rb_intern("transmission_type"), 1, 0, 0 );
 	rb_attr( rant_cAntChannel, rb_intern("rf_frequency"), 1, 0, 0 );
+	rb_attr( rant_cAntChannel, rb_intern("agility_frequencies"), 1, 0, 0 );
 
 	rb_define_method( rant_cAntChannel, "set_channel_id", rant_channel_set_channel_id, -1 );
 	rb_define_method( rant_cAntChannel, "set_channel_period", rant_channel_set_channel_period, -1 );
 	rb_define_method( rant_cAntChannel, "set_channel_search_timeout",
 		rant_channel_set_channel_search_timeout, -1 );
 	rb_define_method( rant_cAntChannel, "set_channel_rf_freq", rant_channel_set_channel_rf_freq, 1 );
+	rb_define_method( rant_cAntChannel, "set_frequency_agility", rant_channet_set_frequency_agility, 3 );
 
 	rb_define_method( rant_cAntChannel, "open", rant_channel_open, -1 );
 	rb_define_method( rant_cAntChannel, "close", rant_channel_close, -1 );

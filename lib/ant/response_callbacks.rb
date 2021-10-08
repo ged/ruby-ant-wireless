@@ -48,6 +48,8 @@ module Ant::ResponseCallbacks
 
 		Ant::Message::MESG_RADIO_TX_POWER_ID            => :on_radio_tx_power,
 
+		Ant::Message::MESG_AUTO_FREQ_CONFIG_ID          => :on_auto_freq_config,
+
 		# :TODO: There are many other MESG_ constants, but I think most or all of
 		# them are for the serial protocol.
 	}
@@ -224,6 +226,13 @@ module Ant::ResponseCallbacks
 	def on_rx_ext_mesgs_enable( channel_num, data )
 		self.log_response_event( channel_num, data, "enabling extended message: not supported",
 			"Enabled extended messages." )
+	end
+
+
+	### Handle on_rx_ext_mesgs_enable response event.
+	def on_auto_freq_config( channel_num, data )
+		self.log_response_event( channel_num, data, "enabling frequency agility",
+			"Enabled frequency agility." )
 	end
 
 
