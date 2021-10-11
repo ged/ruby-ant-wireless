@@ -311,6 +311,32 @@ rant_s_set_network_key( VALUE _module, VALUE network_number, VALUE key )
 
 /*
  * call-seq:
+ *    Ant.transmit_power = 4
+ *
+ * Set the transmit power level for all channels. Valid values are 0-4; default
+ * is 3 = 0dBm.
+ *
+ *    # Set transmit power to -5 dBm
+ *    Ant.transmit_power = 2
+ */
+static VALUE
+rant_s_transmit_power_eq( VALUE _module, VALUE power )
+{
+	const unsigned char ucTransmitPower = NUM2CHR( power );
+	BOOL rval;
+
+	if ( ucTransmitPower < 0 || ucTransmitPower > 4 ) {
+		rb_raise( rb_eArgError, "expected a value between 0 and 4, got %d", ucTransmitPower );
+	}
+
+	rval = ANT_SetTransmitPower( ucTransmitPower );
+
+	return rval ? Qtrue : Qfalse;
+}
+
+
+/*
+ * call-seq:
  *    Ant.assign_channel( channel, channel_type, network_number=0, extended_options=0x0, timeout=0 )   -> channel
  *
  * Assign a channel and return an Ant::Channel object for it. Channel assignment
@@ -575,6 +601,7 @@ Init_ant_ext()
 	rb_define_singleton_method( rant_mAnt, "reset", rant_s_reset, 0 );
 
 	rb_define_singleton_method( rant_mAnt, "set_network_key", rant_s_set_network_key, 2 );
+	rb_define_singleton_method( rant_mAnt, "transmit_power=", rant_s_transmit_power_eq, 1 );
 	rb_define_singleton_method( rant_mAnt, "assign_channel", rant_s_assign_channel, -1 );
 
 	rb_define_singleton_method( rant_mAnt, "use_extended_messages=",
