@@ -1,6 +1,14 @@
 # Release History for ruby-ant
 
 ---
+## v0.3.0 [2021-10-11] Michael Granger <ged@FaerieMUD.org>
+
+Enhancements:
+
+- Add frequency agility config to Channel
+- Add tunable transmit power knob
+
+
 ## v0.2.1 [2021-09-30] Michael Granger <ged@FaerieMUD.org>
 
 Bugfixes:

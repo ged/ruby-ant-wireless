@@ -12,7 +12,7 @@ module Ant
 	extend Loggability
 
 	# Package version
-	VERSION = '0.2.1'
+	VERSION = '0.3.0'
 
 	# A Range for matching valid ANT device numbers
 	VALID_DEVICE_NUMBERS = ( 0...65535 ).freeze
