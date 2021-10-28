@@ -18,6 +18,11 @@ have_func( 'ANT_IsInitialized', 'libant.h' )
 have_func( 'ANT_LibVersion', 'libant.h' )
 have_func( 'ANT_GetDeviceSerialNumber', 'libant.h' )
 
+# Ref: https://bugs.ruby-lang.org/issues/17865
+$CPPFLAGS << " -Wno-compound-token-split-by-macro "
+
+$CFLAGS << " -g "
+
 create_header()
 create_makefile( 'ant_ext' )
 

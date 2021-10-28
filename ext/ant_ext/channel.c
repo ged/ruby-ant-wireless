@@ -9,6 +9,8 @@
 
 #include "ant_ext.h"
 
+#define DEFAULT_ADV_PACKETS 3
+
 VALUE rant_cAntChannel;
 
 VALUE rant_mAntDataUtilities;
@@ -300,6 +302,14 @@ rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
 }
 
 
+/*
+ * call-seq:
+ *    channel.set_frequency_agility( freq1, freq2, freq3 )
+ *
+ * Set the frequencies to use in frequency agility (integers between 0 and 124). These values
+ * use the same convention as the +rf_frequency+ setting; i.e., they're offsets from 2400 MHz.
+ *
+ */
 static VALUE
 rant_channet_set_frequency_agility( VALUE self, VALUE freq1, VALUE freq2, VALUE freq3 )
 {
@@ -582,6 +592,54 @@ rant_channel_send_broadcast_data( VALUE self, VALUE data )
 }
 
 
+/*
+ * call-seq:
+ *    channel.send_advanced_transfer( data, packets_per_message=3 )
+ *
+ * Send the given +data+ as one or more advanced burst packets. The +packets_per_message+
+ * may be set to a value between 1 and 3 to control how many 8-byte packets are send with
+ * each message.
+ *
+ */
+static VALUE
+rant_channel_send_advanced_transfer( int argc, VALUE *argv, VALUE self )
+{
+	rant_channel_t *ptr = rant_get_channel( self );
+	VALUE data = Qnil, packets = Qnil;
+	unsigned char *data_s;
+	long data_len;
+	unsigned short usNumDataPackets = data_len / 8,
+		remainingBytes = data_len % 8;
+	unsigned char ucStdPcktsPerSerialMsg = DEFAULT_ADV_PACKETS;
+
+	rb_scan_args( argc, argv, "11", &data, &packets );
+	data_len = RSTRING_LEN( data );
+	if ( RTEST(packets) ) {
+		ucStdPcktsPerSerialMsg = NUM2CHR(packets);
+	}
+
+	data_s = ALLOC_N( unsigned char, data_len );
+	strncpy( (char *)data_s, StringValuePtr(data), data_len );
+
+	// Pad it to 8-byte alignment
+	if ( remainingBytes ) {
+		int pad_bytes = (8 - remainingBytes);
+		REALLOC_N( data_s, unsigned char, data_len + pad_bytes );
+		memset( data_s + data_len, 0, pad_bytes );
+
+		usNumDataPackets += 1;
+	}
+
+	rant_log_obj( self, "warn", "Sending advanced burst packets (%d-byte messages)",
+		ucStdPcktsPerSerialMsg * 8 );
+	if ( !ANT_SendAdvancedBurstTransfer(ptr->channel_num, data_s, usNumDataPackets, ucStdPcktsPerSerialMsg) ) {
+		rb_raise( rb_eRuntimeError, "failed to send advanced burst transfer." );
+	}
+
+	return Qtrue;
+}
+
+
 void
 init_ant_channel()
 {
@@ -630,6 +688,7 @@ init_ant_channel()
 	rb_define_method( rant_cAntChannel, "send_burst_transfer", rant_channel_send_burst_transfer, 1 );
 	rb_define_method( rant_cAntChannel, "send_acknowledged_data", rant_channel_send_acknowledged_data, 1 );
 	rb_define_method( rant_cAntChannel, "send_broadcast_data", rant_channel_send_broadcast_data, 1 );
+	rb_define_method( rant_cAntChannel, "send_advanced_transfer", rant_channel_send_advanced_transfer, -1 );
 
 	rb_define_method( rant_cAntChannel, "on_event", rant_channel_on_event, -1 );
 

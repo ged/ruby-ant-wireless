@@ -26,6 +26,14 @@ module Ant
 	# The valid offsets for the "RF Frequency" setting; this is an offset from 2400Hz.
 	VALID_RF_FREQUENCIES = ( 0...124 ).freeze
 
+	# Default options for advanced burst when it's enabled.
+	DEFAULT_ADVANCED_OPTIONS = {
+		max_packet_length: 24,
+		frequency_hopping: :optional,
+		stall_count: 0,
+		retry_count: 0
+	}
+
 
 	# Loggability API -- set up a logger for the library
 	log_as :ant
@@ -141,6 +149,56 @@ module Ant
 		end
 
 		return offset
+	end
+
+
+	### Enable advanced burst mode with the given +options+.
+	def self::enable_advanced_burst( **options )
+		options = DEFAULT_ADVANCED_OPTIONS.merge( options )
+
+		max_packet_length = self.convert_max_packet_length( options[:max_packet_length] )
+
+		required_fields = self.make_required_fields_config( options )
+		optional_fields = self.make_optional_fields_config( options )
+
+		stall_count = options[:stall_count]
+		retry_count = options[:retry_count]
+
+		self.configure_advanced_burst( true, max_packet_length, required_fields, optional_fields,
+			stall_count, retry_count )
+	end
+
+
+	### Validate that the specified +length+ (in bytes) is a valid setting as an
+	### advanced burst max packet length configuration value. Returns the equivalent
+	### configuration value.
+	def self::convert_max_packet_length( length )
+		case length
+		when 8 then return 0x01
+		when 16 then return 0x02
+		when 24 then return 0x03
+		else
+			raise ArgumentError,
+				"invalid max packet length; expected 8, 16, or 24, got %p" % [ length ]
+		end
+	end
+
+
+	### Given an options hash, return a configuration value for required fields.
+	def self::make_required_fields_config( **options )
+		value = 0
+		value |= 0x01 if options[:frequency_hopping] == :required
+
+		return value
+	end
+
+
+	### Given an options hash, return a configuration value for optional fields.
+	def self::make_optional_fields_config( **options )
+		value = 0
+		value |= 0x01 if options[:frequency_hopping] == :optional
+
+		return value
 	end
 
 end # module Ant

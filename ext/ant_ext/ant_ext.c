@@ -225,6 +225,15 @@ rant_s_init( int argc, VALUE *argv, VALUE _module )
 }
 
 
+/*
+ * call-seq:
+ *    Ant.initialized?   -> true or false
+ *
+ * Returns +true+ if the ANT library has been initialized.
+ *
+ * Note: this requires a modified version of the Garmin ANT-SDK.
+ *
+ */
 static VALUE
 rant_s_initialized_p( VALUE _module )
 {
@@ -418,6 +427,56 @@ rant_s_use_extended_messages_eq( VALUE _module, VALUE true_false )
 }
 
 
+/*
+ * call-seq:
+ *    Ant.configure_advanced_burst( enabled, max_packet_length, required_fields, optional_fields,
+ *        stall_count=3210, retry_count=4 )
+ *
+ * Enable/disable and configure advanced burst. This is the lower-level method; the
+ * higher-level methods are: #enable_advanced_burst and #disable_advanced_burst.
+ *
+ */
+static VALUE
+rant_s_configure_advanced_burst( int argc, VALUE *argv, VALUE _module )
+{
+	VALUE enabled,
+		max_packet_length,
+		required_fields,
+		optional_fields,
+		stall_count = Qnil,
+		retry_count = Qnil;
+	bool bEnable;
+	unsigned char ucMaxPacketLength,
+		ucRetryCount = 0;
+	unsigned long ulRequiredFields,
+		ulOptionalFields;
+	unsigned short usStallCount = 0;
+	bool rval;
+
+	rb_scan_args( argc, argv, "42", &enabled, &max_packet_length, &required_fields,
+		&optional_fields, &stall_count, &retry_count );
+
+	bEnable = RTEST( enabled );
+	ucMaxPacketLength = NUM2CHR( max_packet_length );
+	ulRequiredFields = NUM2ULONG( required_fields );
+	ulOptionalFields = NUM2ULONG( optional_fields );
+
+	if ( RTEST(stall_count) ) {
+		usStallCount = NUM2USHORT( stall_count );
+	}
+	if ( RTEST(retry_count) ) {
+		ucRetryCount = NUM2CHR( retry_count );
+	}
+
+	rant_log( "warn", "Configuring advanced burst: enable = %d, maxpacketlength = %d",
+		bEnable, ucMaxPacketLength );
+	rval = ANT_ConfigureAdvancedBurst_ext( bEnable, ucMaxPacketLength, ulRequiredFields,
+		ulOptionalFields, usStallCount, ucRetryCount );
+
+	return rval ? Qtrue : Qfalse;
+}
+
+
 // Buffer for response data.
 // static UCHAR pucResponseBuffer[ MESG_RESPONSE_EVENT_SIZE ];
 static UCHAR pucResponseBuffer[ MESG_MAX_SIZE_VALUE ];
@@ -510,7 +569,7 @@ rant_s_on_response( int argc, VALUE *argv, VALUE module )
  *
  */
 static VALUE
-rant_s_request_capabilities( VALUE module )
+rant_s_request_capabilities( VALUE _module )
 {
 	bool rval = ANT_RequestMessage( 0, MESG_CAPABILITIES_ID );
 	return rval ? Qtrue : Qfalse;
@@ -527,7 +586,7 @@ rant_s_request_capabilities( VALUE module )
  *
  */
 static VALUE
-rant_s_request_serial_num( VALUE module )
+rant_s_request_serial_num( VALUE _module )
 {
 	bool rval = ANT_RequestMessage( 0, MESG_GET_SERIAL_NUM_ID );
 	return rval ? Qtrue : Qfalse;
@@ -544,9 +603,26 @@ rant_s_request_serial_num( VALUE module )
  *
  */
 static VALUE
-rant_s_request_version( VALUE module )
+rant_s_request_version( VALUE _module )
 {
 	bool rval = ANT_RequestMessage( 0, MESG_VERSION_ID );
+	return rval ? Qtrue : Qfalse;
+}
+
+
+/*
+ * call-seq:
+ *    Ant.request_advanced_burst_capabilities
+ *
+ * Request the current device's advanced burst capabilities. The result will
+ * be delivered via a callback to the #on_version response callback, which by
+ * default extracts it and stores it at Ant.advanced_burst_capabilities.
+ *
+ */
+static VALUE
+rant_s_request_advanced_burst_capabilities( VALUE _module )
+{
+	bool rval = ANT_RequestMessage( 0, MESG_CONFIG_ADV_BURST_ID );
 	return rval ? Qtrue : Qfalse;
 }
 
@@ -606,6 +682,8 @@ Init_ant_ext()
 
 	rb_define_singleton_method( rant_mAnt, "use_extended_messages=",
 		rant_s_use_extended_messages_eq, 1 );
+	rb_define_singleton_method( rant_mAnt, "configure_advanced_burst",
+		rant_s_configure_advanced_burst, -1 );
 
 	rb_define_singleton_method( rant_mAnt, "on_response", rant_s_on_response, -1 );
 	// EXPORT void ANT_UnassignAllResponseFunctions(); //Unassigns all response functions
@@ -613,6 +691,8 @@ Init_ant_ext()
 	rb_define_singleton_method( rant_mAnt, "request_capabilities", rant_s_request_capabilities, 0 );
 	rb_define_singleton_method( rant_mAnt, "request_serial_num", rant_s_request_serial_num, 0 );
 	rb_define_singleton_method( rant_mAnt, "request_version", rant_s_request_version, 0 );
+	rb_define_singleton_method( rant_mAnt, "request_advanced_burst_capabilities",
+		rant_s_request_advanced_burst_capabilities, 0 );
 
 	rb_define_singleton_method( rant_mAnt, "log_directory=", rant_s_log_directory_eq, 1 );
 

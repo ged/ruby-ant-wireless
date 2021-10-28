@@ -9,7 +9,8 @@ require 'ant/bitvector'
 
 # A module that handles response callbacks by logging them.
 module Ant::ResponseCallbacks
-	extend Loggability
+	extend Loggability,
+		Ant::DataUtilities
 
 	# Loggability API -- send logs to the Ant logger
 	log_to :ant
@@ -49,9 +50,10 @@ module Ant::ResponseCallbacks
 		Ant::Message::MESG_RADIO_TX_POWER_ID            => :on_radio_tx_power,
 
 		Ant::Message::MESG_AUTO_FREQ_CONFIG_ID          => :on_auto_freq_config,
+		Ant::Message::MESG_CONFIG_ADV_BURST_ID          => :on_config_adv_burst_id,
 
 		# :TODO: There are many other MESG_ constants, but I think most or all of
-		# them are for the serial protocol.
+		# them are only used for the serial protocol.
 	}
 
 
@@ -233,6 +235,54 @@ module Ant::ResponseCallbacks
 	def on_auto_freq_config( channel_num, data )
 		self.log_response_event( channel_num, data, "enabling frequency agility",
 			"Enabled frequency agility." )
+	end
+
+
+	### Handle callback when requesting advanced burst configuration.
+	def on_config_adv_burst_id( type, data )
+		self.log.debug "Advanced burst config/capabilities: 0x%02x: %p" % [ type, data ]
+
+		# Advanced burst capabilities
+		if type == 0
+			max_packet_length, features = data.unpack( 'CV' )
+			features = Ant::BitVector.new( features )
+
+			caps = {
+				max_packet_length: max_packet_length,
+				frequency_hopping: features.on?( Ant::ADV_BURST_CONFIG_FREQ_HOP )
+			}
+
+			self.log.info "Advanced burst capabilities: %p" % [ caps ]
+			Ant.instance_variable_set( :@advanced_burst_capabilities, caps );
+
+		# Advanced burst current configuration
+		elsif type == 1
+			enabled, max_packet_length, required, optional, stall_count, retry_count =
+				data.unpack( 'CCVVvC' )
+			required = Ant::BitVector.new( required )
+			optional = Ant::BitVector.new( optional )
+
+			required_features = []
+			required_features << :frequency_hopping if required.on?( Ant::ADV_BURST_CONFIG_FREQ_HOP )
+
+			optional_features = []
+			optional_features << :frequency_hopping if optional.on?( Ant::ADV_BURST_CONFIG_FREQ_HOP )
+
+			config = {
+				enabled: enabled == 1,
+				max_packet_length: max_packet_length,
+				required_features: required_features,
+				optional_features: optional_features,
+				stall_count: stall_count,
+				retry_count_extension: retry_count
+			}
+
+			self.log.info "Advanced burst configuration: %p" % [ config ]
+			Ant.instance_variable_set( :@advanced_burst_config, config );
+
+		else
+			self.log.warn "Unknown advanced burst response type %p." % [ type ]
+		end
 	end
 
 
