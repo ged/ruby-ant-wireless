@@ -10,6 +10,7 @@
 #include "ant_ext.h"
 
 #define DEFAULT_ADV_PACKETS 3
+#define ADVANCED_BURST_TIMEOUT 5
 
 VALUE rant_cAntChannel;
 
@@ -311,7 +312,7 @@ rant_channel_set_channel_rf_freq( VALUE self, VALUE frequency )
  *
  */
 static VALUE
-rant_channet_set_frequency_agility( VALUE self, VALUE freq1, VALUE freq2, VALUE freq3 )
+rant_channel_set_frequency_agility( VALUE self, VALUE freq1, VALUE freq2, VALUE freq3 )
 {
 	rant_channel_t *ptr = rant_get_channel( self );
 	unsigned char ucFreq1 = NUM2CHR( freq1 ),
@@ -630,9 +631,11 @@ rant_channel_send_advanced_transfer( int argc, VALUE *argv, VALUE self )
 		usNumDataPackets += 1;
 	}
 
-	rant_log_obj( self, "warn", "Sending advanced burst packets (%d-byte messages)",
-		ucStdPcktsPerSerialMsg * 8 );
-	if ( !ANT_SendAdvancedBurstTransfer(ptr->channel_num, data_s, usNumDataPackets, ucStdPcktsPerSerialMsg) ) {
+	rant_log_obj( self, "warn", "Sending advanced burst packets (%d-byte messages): %s",
+		ucStdPcktsPerSerialMsg * 8, data_s );
+	if ( !ANT_SendAdvancedBurstTransfer_RTO(ptr->channel_num, data_s, usNumDataPackets,
+		ucStdPcktsPerSerialMsg, ADVANCED_BURST_TIMEOUT) )
+	{
 		rb_raise( rb_eRuntimeError, "failed to send advanced burst transfer." );
 	}
 
@@ -679,7 +682,7 @@ init_ant_channel()
 	rb_define_method( rant_cAntChannel, "set_channel_search_timeout",
 		rant_channel_set_channel_search_timeout, -1 );
 	rb_define_method( rant_cAntChannel, "set_channel_rf_freq", rant_channel_set_channel_rf_freq, 1 );
-	rb_define_method( rant_cAntChannel, "set_frequency_agility", rant_channet_set_frequency_agility, 3 );
+	rb_define_method( rant_cAntChannel, "set_frequency_agility", rant_channel_set_frequency_agility, 3 );
 
 	rb_define_method( rant_cAntChannel, "open", rant_channel_open, -1 );
 	rb_define_method( rant_cAntChannel, "close", rant_channel_close, -1 );
