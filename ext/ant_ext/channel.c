@@ -609,12 +609,13 @@ rant_channel_send_advanced_transfer( int argc, VALUE *argv, VALUE self )
 	VALUE data = Qnil, packets = Qnil;
 	unsigned char *data_s;
 	long data_len;
-	unsigned short usNumDataPackets = data_len / 8,
-		remainingBytes = data_len % 8;
+	unsigned short usNumDataPackets, remainingBytes;
 	unsigned char ucStdPcktsPerSerialMsg = DEFAULT_ADV_PACKETS;
 
 	rb_scan_args( argc, argv, "11", &data, &packets );
 	data_len = RSTRING_LEN( data );
+	usNumDataPackets = data_len / 8;
+	remainingBytes = data_len % 8;
 	if ( RTEST(packets) ) {
 		ucStdPcktsPerSerialMsg = NUM2CHR(packets);
 	}
@@ -636,7 +637,7 @@ rant_channel_send_advanced_transfer( int argc, VALUE *argv, VALUE self )
 	if ( !ANT_SendAdvancedBurstTransfer_RTO(ptr->channel_num, data_s, usNumDataPackets,
 		ucStdPcktsPerSerialMsg, ADVANCED_BURST_TIMEOUT) )
 	{
-		rb_raise( rb_eRuntimeError, "failed to send advanced burst transfer." );
+		rant_log_obj( self, "error", "failed to send advanced burst transfer." );
 	}
 
 	return Qtrue;
