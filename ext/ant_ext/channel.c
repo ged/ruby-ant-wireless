@@ -605,6 +605,7 @@ rant_channel_send_broadcast_data( VALUE self, VALUE data )
 static VALUE
 rant_channel_send_advanced_transfer( int argc, VALUE *argv, VALUE self )
 {
+#ifdef HAVE_ANT_SENDADVANCEDBURST
 	rant_channel_t *ptr = rant_get_channel( self );
 	VALUE data = Qnil, packets = Qnil;
 	unsigned char *data_s;
@@ -634,13 +635,16 @@ rant_channel_send_advanced_transfer( int argc, VALUE *argv, VALUE self )
 
 	rant_log_obj( self, "warn", "Sending advanced burst packets (%d-byte messages): %s",
 		ucStdPcktsPerSerialMsg * 8, data_s );
-	if ( !ANT_SendAdvancedBurstTransfer_RTO(ptr->channel_num, data_s, usNumDataPackets,
+	if ( !ANT_SendAdvancedBurst_RTO(ptr->channel_num, data_s, usNumDataPackets,
 		ucStdPcktsPerSerialMsg, ADVANCED_BURST_TIMEOUT) )
 	{
 		rant_log_obj( self, "error", "failed to send advanced burst transfer." );
 	}
 
 	return Qtrue;
+#else
+	rb_notimplement();
+#endif
 }
 
 

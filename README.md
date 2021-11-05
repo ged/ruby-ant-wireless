@@ -24,7 +24,10 @@ manner.
 * [Garmin USB ANT Stick][antstick]
 * [ANT SDK][antsdk]
 
-Note that we had trouble compiling the latest ANT SDK on some platforms, so we are currently using a modified version of it with a reworked build system for MacOS and FreeBSD. That is available under the same licensing terms at:
+Note that we had trouble compiling the latest ANT SDK on some platforms, so we
+are currently using a modified version of it with a reworked build system for
+MacOS and FreeBSD, and with implementations for advanced burst and checking
+initialization status. That is available under the same licensing terms at:
 
 https://github.com/RavnGroup/Garmin-ANT-SDK
 

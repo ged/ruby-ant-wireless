@@ -1,6 +1,13 @@
 # Release History for ruby-ant
 
 ---
+## v0.4.0 [2021-11-05] Michael Granger <ged@FaerieMUD.org>
+
+Enhancements:
+
+- Add advanced burst support (with a customized ANT-SDK).
+
+
 ## v0.3.0 [2021-10-11] Michael Granger <ged@FaerieMUD.org>
 
 Enhancements:

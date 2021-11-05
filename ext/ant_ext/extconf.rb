@@ -18,6 +18,10 @@ have_func( 'ANT_IsInitialized', 'libant.h' )
 have_func( 'ANT_LibVersion', 'libant.h' )
 have_func( 'ANT_GetDeviceSerialNumber', 'libant.h' )
 
+# Look for a custom advanced burst function, as the official SDK has it in the
+# header but doesn't actually implement it.
+have_func( 'ANT_SendAdvancedBurst', 'libant.h' )
+
 # Ref: https://bugs.ruby-lang.org/issues/17865
 $CPPFLAGS << " -Wno-compound-token-split-by-macro "
 
